@@ -6,7 +6,7 @@ import plotly.express as px
 # ------------------------------
 # Configuración general
 # ------------------------------
-BASE_DIR = Path().absolute()  # carpeta donde ejecutas Streamlit
+BASE_DIR = Path().absolute()  # carpeta actual
 ASSETS_DIR = BASE_DIR / "assets"
 DATA_FILE = BASE_DIR / "datos.xlsx"
 
@@ -17,16 +17,16 @@ COLOR3 = "#2ca02c"
 COLOR4 = "#d62728"
 
 # ------------------------------
-# Fondo y logo
+# Fondo de pantalla
 # ------------------------------
 ruta_fondo = ASSETS_DIR / "fondo_comercio.jpg"
-if ruta_fondo.is_file():
+if ruta_fondo.exists():
     st.markdown(
         f"""
         <style>
         .stApp {{
             background: linear-gradient(rgba(255,255,255,0.25), rgba(255,255,255,0.25)),
-                        url("{ruta_fondo.as_uri()}");
+                        url("file://{ruta_fondo}");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -37,13 +37,16 @@ if ruta_fondo.is_file():
         unsafe_allow_html=True
     )
 else:
-    st.warning(f"No se encontró la imagen de fondo: {ruta_fondo}")
+    st.warning("No se encontró la imagen de fondo en 'assets/fondo_comercio.jpg'.")
 
+# ------------------------------
+# Logo en la barra lateral
+# ------------------------------
 ruta_logo = ASSETS_DIR / "logo_empresa.png"
-if ruta_logo.is_file():
+if ruta_logo.exists():
     st.sidebar.image(str(ruta_logo), width=150)
 else:
-    st.sidebar.warning(f"No se encontró el logo: {ruta_logo}")
+    st.sidebar.warning("No se encontró el logo en 'assets/logo_empresa.png'.")
 
 # ------------------------------
 # Título
@@ -112,8 +115,7 @@ with tabs[0]:
     cuadro_kpi(col2, "Peso Neto Exportado (t)", f"{peso_exportado_t:,.2f}", colores[1])
     cuadro_kpi(col3, "Peso Neto Importado (t)", f"{peso_importado_t:,.2f}", colores[2])
     cuadro_kpi(col4, "Peso Total (t)", f"{peso_total_t:,.2f}", colores[3])
-
-# ------------------------------
+    # ------------------------------
 # Análisis de Operaciones
 # ------------------------------
 with tabs[1]:
