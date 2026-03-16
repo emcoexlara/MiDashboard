@@ -1,25 +1,24 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
-import pandas as pd
+from pathlib import Path
+from pages import resumen_ejecutivo, analisis_operaciones, analisis_paises, datos_completos
 
-def run(BASE_DIR):
-    st.markdown("## 📊 Resumen Ejecutivo")
+BASE_DIR = Path(file).parent
 
-    archivo = st.sidebar.file_uploader("Actualizar datos (Excel)", type=["xlsx"])
-    if archivo:
-        df = pd.read_excel(archivo)
-    else:
-        df = pd.read_excel(BASE_DIR / "datos.xlsx")
+# Sidebar con logo y menú
+st.sidebar.image(BASE_DIR / "logo.png", use_column_width=True)
+st.sidebar.title("Dashboard Comercio Exterior")
 
-    df.columns = df.columns.str.strip().str.lower()
-    df["peso neto exportado"] = pd.to_numeric(df.get("peso neto exportado", 0), errors="coerce").fillna(0)
-    df["peso neto importado"] = pd.to_numeric(df.get("peso neto importado", 0), errors="coerce").fillna(0)
+pagina = st.sidebar.radio(
+    "Selecciona la página",
+    ["Resumen Ejecutivo", "Análisis de Operaciones", "Análisis por Países", "Datos Completos"]
+)
 
-    operaciones_totales = len(df)
-    peso_exportado_total = df["peso neto exportado"].sum()
-    peso_importado_total = df["peso neto importado"].sum()
-
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Operaciones Totales", operaciones_totales, delta_color="inverse")
-    col2.metric("Peso Neto Exportado (kg)", f"{peso_exportado_total:,.2f}", delta_color="normal")
-    col3.metric("Peso Neto Importado (kg)", f"{peso_importado_total:,.2f}", delta_color="normal")
+if pagina == "Resumen Ejecutivo":
+    resumen_ejecutivo.run(BASE_DIR)
+elif pagina == "Análisis de Operaciones":
+    analisis_operaciones.run(BASE_DIR)
+elif pagina == "Análisis por Países":
+    analisis_paises.run(BASE_DIR)
+elif pagina == "Datos Completos":
+    datos_completos.run(BASE_DIR)
