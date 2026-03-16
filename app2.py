@@ -9,7 +9,7 @@ import plotly.express as px
 BASE_DIR = Path(__file__).parent
 DATA_FILE = BASE_DIR / "datos.xlsx"
 
-# Colores corporativos para cuadros y gráficas
+# Colores corporativos para KPIs y gráficas
 COLOR1 = "#1f77b4"
 COLOR2 = "#ff7f0e"
 COLOR3 = "#2ca02c"
@@ -23,7 +23,8 @@ def agregar_fondo(imagen_fondo):
         f"""
         <style>
         .stApp {{
-            background-image: linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.2)), url("{imagen_fondo}");
+            background: linear-gradient(rgba(255,255,255,0.25), rgba(255,255,255,0.25)),
+                        url("{imagen_fondo}");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -34,10 +35,12 @@ def agregar_fondo(imagen_fondo):
         unsafe_allow_html=True
     )
 
-# Imagen de fondo de comercio exterior
-ruta_fondo = BASE_DIR / "fondo_comercio.png"  # colocar tu imagen aquí
+# Aplicar fondo de comercio exterior
+ruta_fondo = BASE_DIR / "fondo_comercio.jpg"  # imagen de comercio exterior
 if ruta_fondo.exists():
     agregar_fondo(ruta_fondo.as_uri())
+else:
+    st.warning("No se encontró la imagen de fondo. Verifica que esté en la carpeta raíz y se llame 'fondo_comercio.jpg'.")
 
 # ------------------------------
 # Función para cargar datos
@@ -73,11 +76,10 @@ if df.empty:
 tabs = st.tabs(["Resumen Ejecutivo", "Operaciones", "Países", "Datos Completos"])
 
 # ------------------------------
-# 1️⃣ Resumen Ejecutivo con cuadros de color
+# 1️⃣ Resumen Ejecutivo
 # ------------------------------
 with tabs[0]:
     st.markdown("## 📊 Resumen Ejecutivo")
-
     operaciones_totales = len(df)
     peso_exportado_t = df['peso neto exportado'].sum() / 1000
     peso_importado_t = df['peso neto importado'].sum() / 1000
@@ -110,10 +112,10 @@ with tabs[1]:
     paises = ["Todos"] + list(df["destino"].unique())
     pais_sel = st.selectbox("Filtrar por País", paises)
     df_ops = df if pais_sel == "Todos" else df[df["destino"] == pais_sel]
-
     st.subheader("Distribución Peso Neto Exportado (t)")
     fig1 = px.histogram(df_ops, x=df_ops["peso neto exportado"]/1000, nbins=30, color_discrete_sequence=[COLOR1])
     st.plotly_chart(fig1, use_container_width=True)
+
     st.subheader("Distribución Peso Neto Importado (t)")
     fig2 = px.histogram(df_ops, x=df_ops["peso neto importado"]/1000, nbins=30, color_discrete_sequence=[COLOR1])
     st.plotly_chart(fig2, use_container_width=True)
@@ -140,17 +142,6 @@ with tabs[2]:
     st.subheader("Peso Total por País (t)")
     fig_total = px.bar(df_paises, x=df_paises["destino"], y=df_paises["peso total (t)"], color_discrete_sequence=[COLOR1])
     st.plotly_chart(fig_total, use_container_width=True)
-
-    st.subheader("Mapa de Exportaciones (t)")
-    fig_map = px.choropleth(
-        df_paises,
-        locations=df_paises["destino"],
-        locationmode="country names",
-        color=df_paises["peso neto exportado"]/1000,
-        color_continuous_scale=[COLOR1, "#ffffff"],
-        title="Exportaciones por País"
-    )
-    st.plotly_chart(fig_map, use_container_width=True)
 
 # ------------------------------
 # 4️⃣ Datos Completos
