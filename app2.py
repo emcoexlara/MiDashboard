@@ -6,7 +6,7 @@ import plotly.express as px
 # ------------------------------
 # Configuración general
 # ------------------------------
-BASE_DIR = Path(__file__).parent
+BASE_DIR = Path().absolute()  # carpeta donde ejecutas Streamlit
 ASSETS_DIR = BASE_DIR / "assets"
 DATA_FILE = BASE_DIR / "datos.xlsx"
 
@@ -20,7 +20,7 @@ COLOR4 = "#d62728"
 # Fondo y logo
 # ------------------------------
 ruta_fondo = ASSETS_DIR / "fondo_comercio.jpg"
-if ruta_fondo.exists():
+if ruta_fondo.is_file():
     st.markdown(
         f"""
         <style>
@@ -37,13 +37,13 @@ if ruta_fondo.exists():
         unsafe_allow_html=True
     )
 else:
-    st.warning("No se encontró la imagen de fondo en 'assets/fondo_comercio.jpg'.")
+    st.warning(f"No se encontró la imagen de fondo: {ruta_fondo}")
 
 ruta_logo = ASSETS_DIR / "logo_empresa.png"
-if ruta_logo.exists():
-    st.sidebar.image(ruta_logo, width=150)
+if ruta_logo.is_file():
+    st.sidebar.image(str(ruta_logo), width=150)
 else:
-    st.sidebar.warning("No se encontró el logo en 'assets/logo_empresa.png'.")
+    st.sidebar.warning(f"No se encontró el logo: {ruta_logo}")
 
 # ------------------------------
 # Título
