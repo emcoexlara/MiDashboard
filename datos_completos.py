@@ -8,16 +8,16 @@ def run(BASE_DIR):
     df = pd.read_excel(archivo) if archivo else pd.read_excel(BASE_DIR / "datos.xlsx")
     df.columns = df.columns.str.strip().str.lower()
 
-    for col in ["peso manejado", "peso neto exportado"]:
+    for col in ["peso neto manejado", "peso neto exportado"]:
         if col not in df.columns:
             st.error(f"No se encontró la columna '{col}' en el Excel.")
             return
 
-    df["peso manejado"] = pd.to_numeric(df["peso manejado"], errors="coerce").fillna(0)
+    df["peso neto manejado"] = pd.to_numeric(df["peso neto manejado"], errors="coerce").fillna(0)
     df["peso neto exportado"] = pd.to_numeric(df["peso neto exportado"], errors="coerce").fillna(0)
 
     # Peso total y suma manejado + exportado
-    df["peso total (t)"] = (df["peso manejado"] + df["peso neto exportado"]) / 1000
+    df["peso total (t)"] = (df["peso neto manejado"] + df["peso neto exportado"]) / 1000
     df["peso manejado + exportado (t)"] = df["peso total (t)"]
 
     # Formato visual
@@ -28,12 +28,12 @@ def run(BASE_DIR):
 
     styler = (
         df.style.format({
-            "peso manejado": "{:,.2f}",
+            "peso neto manejado": "{:,.2f}",
             "peso neto exportado": "{:,.2f}",
             "peso total (t)": "{:,.2f}",
             "peso manejado + exportado (t)": "{:,.2f}"
         })
-        .apply(color_gradiente, subset=["peso manejado", "peso neto exportado", "peso total (t)", "peso manejado + exportado (t)"])
+        .apply(color_gradiente, subset=["peso neto manejado", "peso neto exportado", "peso total (t)", "peso manejado + exportado (t)"])
         .set_table_styles([{"selector": "th",
                             "props": [("background-color", COLOR_LOGO),
                                       ("color", "white"),
