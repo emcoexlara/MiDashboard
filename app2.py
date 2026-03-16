@@ -6,7 +6,7 @@ import plotly.express as px
 # ------------------------------
 # Configuración general
 # ------------------------------
-BASE_DIR = Path(file).parent
+BASE_DIR = Path(__file__).parent
 DATA_FILE = BASE_DIR / "datos.xlsx"
 COLOR_LOGO = "#1f77b4"  # Color principal corporativo
 COLOR2 = "#ff7f0e"
