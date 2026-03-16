@@ -3,12 +3,42 @@ import pandas as pd
 from pathlib import Path
 import plotly.express as px
 
-# Base de datos
-BASE_DIR = Path(__file__).parent
+# ------------------------------
+# Configuración general
+# ------------------------------
+BASE_DIR = Path(file).parent
 DATA_FILE = BASE_DIR / "datos.xlsx"
-COLOR_LOGO = "#1f77b4"
+COLOR_LOGO = "#1f77b4"  # Color principal corporativo
+COLOR2 = "#ff7f0e"
+COLOR3 = "#2ca02c"
+COLOR4 = "#d62728"
 
+# ------------------------------
+# Función para agregar fondo
+# ------------------------------
+def agregar_fondo(imagen_fondo):
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-image: url("{imagen_fondo}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+ruta_fondo = BASE_DIR / "fondo.png"  # Imagen del terminal
+if ruta_fondo.exists():
+    agregar_fondo(ruta_fondo.as_uri())
+
+# ------------------------------
 # Función para cargar datos
+# ------------------------------
 @st.cache_data
 def cargar_datos(archivo=None):
     if archivo:
@@ -16,33 +46,58 @@ def cargar_datos(archivo=None):
     else:
         df = pd.read_excel(DATA_FILE)
     df.columns = df.columns.str.strip().str.lower()
+    # Columnas obligatorias
     for col in ["peso neto manejado", "peso neto exportado", "peso neto importado"]:
         if col not in df.columns:
             st.error(f"No se encontró la columna '{col}' en el Excel.")
             return pd.DataFrame()
         df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
+    # Peso total en toneladas
     df["peso total (t)"] = (df["peso neto manejado"] + df["peso neto exportado"]) / 1000
     return df
 
-# Sidebar: subir archivo
+# ------------------------------
+# Cargar Excel desde sidebar
+# ------------------------------
 archivo_excel = st.sidebar.file_uploader("Actualizar datos (Excel)", type=["xlsx"])
 df = cargar_datos(archivo_excel)
 if df.empty:
     st.stop()
 
-# Tabs principales
+# ------------------------------
+# Crear tabs
+# ------------------------------
 tabs = st.tabs(["Resumen Ejecutivo", "Operaciones", "Países", "Datos Completos"])
 
 # ------------------------------
-# 1️⃣ Resumen Ejecutivo
+# 1️⃣ Resumen Ejecutivo con cuadros de color
 # ------------------------------
 with tabs[0]:
     st.markdown("## 📊 Resumen Ejecutivo")
+
+    operaciones_totales = len(df)
+    peso_exportado_t = df['peso neto exportado'].sum() / 1000
+    peso_importado_t = df['peso neto importado'].sum() / 1000
+    peso_total_t = df['peso total (t)'].sum()
+
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Operaciones Totales", len(df))
-    col2.metric("Peso Neto Exportado (t)", f"{df['peso neto exportado'].sum()/1000:,.2f}")
-    col3.metric("Peso Neto Importado (t)", f"{df['peso neto importado'].sum()/1000:,.2f}")
-    col4.metric("Peso Total (t)", f"{df['peso total (t)'].sum():,.2f}")
+    colores = [COLOR_LOGO, COLOR2, COLOR3, COLOR4]
+
+    def cuadro_kpi(columna, titulo, valor, color):
+        estilo = f"""
+            background-color: {color};
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        """
+        columna.markdown(f"<div style='{estilo}'><h4>{titulo}</h4><h2>{valor}</h2></div>", unsafe_allow_html=True)
+
+    cuadro_kpi(col1, "Operaciones Totales", operaciones_totales, colores[0])
+    cuadro_kpi(col2, "Peso Neto Exportado (t)", f"{peso_exportado_t:,.2f}", colores[1])
+    cuadro_kpi(col3, "Peso Neto Importado (t)", f"{peso_importado_t:,.2f}", colores[2])
+    cuadro_kpi(col4, "Peso Total (t)", f"{peso_total_t:,.2f}", colores[3])
 
 # ------------------------------
 # 2️⃣ Análisis de Operaciones
@@ -56,7 +111,6 @@ with tabs[1]:
     st.subheader("Distribución Peso Neto Exportado (t)")
     fig1 = px.histogram(df_ops, x=df_ops["peso neto exportado"]/1000, nbins=30, color_discrete_sequence=[COLOR_LOGO])
     st.plotly_chart(fig1, use_container_width=True)
-
     st.subheader("Distribución Peso Neto Importado (t)")
     fig2 = px.histogram(df_ops, x=df_ops["peso neto importado"]/1000, nbins=30, color_discrete_sequence=[COLOR_LOGO])
     st.plotly_chart(fig2, use_container_width=True)
@@ -94,7 +148,8 @@ with tabs[2]:
         title="Exportaciones por País"
     )
     st.plotly_chart(fig_map, use_container_width=True)
-    # ------------------------------
+
+# ------------------------------
 # 4️⃣ Datos Completos
 # ------------------------------
 with tabs[3]:
