@@ -5,12 +5,12 @@ import pandas as pd
 def run(BASE_DIR):
     st.markdown("## Datos Completos")
 
-    ruta_excel = BASE_DIR / "datos.xlsx"
-    if not ruta_excel.exists():
-        st.error(f"No se encontró el archivo Excel: {ruta_excel}")
-        return
+    archivo = st.sidebar.file_uploader("Actualizar datos (Excel)", type=["xlsx"])
+    if archivo:
+        df = pd.read_excel(archivo)
+    else:
+        df = pd.read_excel(BASE_DIR / "datos.xlsx")
 
-    df = pd.read_excel(ruta_excel)
     df.columns = df.columns.str.strip().str.lower()
 
     st.subheader("Tabla completa de operaciones")
