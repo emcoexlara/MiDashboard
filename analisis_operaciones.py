@@ -9,18 +9,17 @@ def run(BASE_DIR):
 
     archivo = st.sidebar.file_uploader("Actualizar datos (Excel)", type=["xlsx"])
     df = pd.read_excel(archivo) if archivo else pd.read_excel(BASE_DIR / "datos.xlsx")
-
     df.columns = df.columns.str.strip().str.lower()
 
-    for col in ["peso manejado", "peso neto exportado", "peso neto importado"]:
+    for col in ["peso neto manejado", "peso neto exportado", "peso neto importado"]:
         if col not in df.columns:
             st.error(f"No se encontró la columna '{col}' en el Excel.")
             return
 
-    df["peso manejado"] = pd.to_numeric(df["peso manejado"], errors="coerce").fillna(0)
+    df["peso neto manejado"] = pd.to_numeric(df["peso neto manejado"], errors="coerce").fillna(0)
     df["peso neto exportado"] = pd.to_numeric(df["peso neto exportado"], errors="coerce").fillna(0)
     df["peso neto importado"] = pd.to_numeric(df["peso neto importado"], errors="coerce").fillna(0)
-    df["peso total (t)"] = (df["peso manejado"] + df["peso neto exportado"]) / 1000
+    df["peso total (t)"] = (df["peso neto manejado"] + df["peso neto exportado"]) / 1000
 
     paises = ["Todos"] + list(df["destino"].unique())
     pais_sel = st.sidebar.selectbox("Filtrar por País", paises)
@@ -38,7 +37,3 @@ def run(BASE_DIR):
     st.subheader("Distribución Peso Total (t)")
     fig3 = px.histogram(df, x="peso total (t)", nbins=30, color_discrete_sequence=[COLOR_LOGO])
     st.plotly_chart(fig3, use_container_width=True)
-    st.subheader("Distribución Peso Neto Importado (t)")
-    fig2 = px.histogram(df, x="peso neto importado", nbins=30, title="Peso Neto Importado",
-                        color_discrete_sequence=[COLOR_LOGO])
-    st.plotly_chart(fig2, use_container_width=True)
