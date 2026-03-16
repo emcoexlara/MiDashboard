@@ -10,18 +10,18 @@ def run(BASE_DIR):
     df.columns = df.columns.str.strip().str.lower()
 
     # Validar columnas
-    for col in ["peso manejado", "peso neto exportado", "peso neto importado"]:
+    for col in ["peso neto manejado", "peso neto exportado", "peso neto importado"]:
         if col not in df.columns:
             st.error(f"No se encontró la columna '{col}' en el Excel.")
             return
 
     # Convertir a numérico
-    df["peso manejado"] = pd.to_numeric(df["peso manejado"], errors="coerce").fillna(0)
+    df["peso neto manejado"] = pd.to_numeric(df["peso neto manejado"], errors="coerce").fillna(0)
     df["peso neto exportado"] = pd.to_numeric(df["peso neto exportado"], errors="coerce").fillna(0)
     df["peso neto importado"] = pd.to_numeric(df["peso neto importado"], errors="coerce").fillna(0)
 
     # Pesos en toneladas
-    df["peso total (t)"] = (df["peso manejado"] + df["peso neto exportado"]) / 1000
+    df["peso total (t)"] = (df["peso neto manejado"] + df["peso neto exportado"]) / 1000
     peso_exportado_t = df["peso neto exportado"].sum() / 1000
     peso_importado_t = df["peso neto importado"].sum() / 1000
     peso_total_t = df["peso total (t)"].sum()
