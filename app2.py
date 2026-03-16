@@ -1,12 +1,9 @@
 import streamlit as st
 from pathlib import Path
-import resumen_ejecutivo
-import analisis_operaciones
-import analisis_paises
-import datos_completos
-from pathlib import Path
+from pages import resumen_ejecutivo, analisis_operaciones, analisis_paises, datos_completos
 
 BASE_DIR = Path(__file__).parent
+
 st.sidebar.image(BASE_DIR / "logo.png", use_column_width=True)
 st.sidebar.title("Dashboard Comercio Exterior")
 
