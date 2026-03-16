@@ -8,7 +8,10 @@ BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
 
 # Importar módulos
-from pages import resumen_ejecutivo, analisis_operaciones, analisis_paises, datos_completos
+import resumen_ejecutivo
+import analisis_operaciones
+import analisis_paises
+import datos_completos
 
 # Configuración Streamlit
 st.set_page_config(
