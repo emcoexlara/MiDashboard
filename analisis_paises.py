@@ -6,12 +6,12 @@ import plotly.express as px
 def run(BASE_DIR):
     st.markdown("## Análisis por Países")
 
-    ruta_excel = BASE_DIR / "datos.xlsx"
-    if not ruta_excel.exists():
-        st.error(f"No se encontró el archivo Excel: {ruta_excel}")
-        return
+    archivo = st.sidebar.file_uploader("Actualizar datos (Excel)", type=["xlsx"])
+    if archivo:
+        df = pd.read_excel(archivo)
+    else:
+        df = pd.read_excel(BASE_DIR / "datos.xlsx")
 
-    df = pd.read_excel(ruta_excel)
     df.columns = df.columns.str.strip().str.lower()
 
     required_cols = ["destino", "peso neto exportado", "peso neto importado"]
@@ -32,3 +32,14 @@ def run(BASE_DIR):
     st.subheader("Importaciones por País")
     fig_import = px.bar(paises, x="destino", y="peso neto importado", title="Peso Neto Importado por País")
     st.plotly_chart(fig_import, use_container_width=True)
+
+    # Mapa mundial de exportaciones
+    st.subheader("Mapa de Exportaciones por País")
+    fig_mapa = px.choropleth(
+        paises,
+        locations="destino",
+        locationmode="country names",
+        color="peso neto exportado",
+        title="Exportaciones por País (kg)",
+    )
+    st.plotly_chart(fig_mapa, use_container_width=True)
