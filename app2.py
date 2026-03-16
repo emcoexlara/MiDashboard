@@ -6,7 +6,7 @@ import analisis_paises
 import datos_completos
 from pathlib import Path
 
-BASE_DIR = Path(file).parent
+BASE_DIR = Path(__file__).parent
 st.sidebar.image(BASE_DIR / "logo.png", use_column_width=True)
 st.sidebar.title("Dashboard Comercio Exterior")
 
