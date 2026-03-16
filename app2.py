@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).parent
 ASSETS_DIR = BASE_DIR / "assets"
 DATA_FILE = BASE_DIR / "datos.xlsx"
 
-# Colores corporativos para KPIs y gráficas
+# Colores corporativos
 COLOR1 = "#1f77b4"
 COLOR2 = "#ff7f0e"
 COLOR3 = "#2ca02c"
@@ -19,7 +19,6 @@ COLOR4 = "#d62728"
 # ------------------------------
 # Fondo y logo
 # ------------------------------
-# Fondo de comercio exterior
 ruta_fondo = ASSETS_DIR / "fondo_comercio.jpg"
 if ruta_fondo.exists():
     st.markdown(
@@ -38,20 +37,19 @@ if ruta_fondo.exists():
         unsafe_allow_html=True
     )
 else:
-    st.warning("No se encontró la imagen de fondo.")
+    st.warning("No se encontró la imagen de fondo en 'assets/fondo_comercio.jpg'.")
 
-# Logo de la empresa
 ruta_logo = ASSETS_DIR / "logo_empresa.png"
 if ruta_logo.exists():
     st.sidebar.image(ruta_logo, width=150)
 else:
-    st.sidebar.warning("No se encontró el logo de la empresa.")
+    st.sidebar.warning("No se encontró el logo en 'assets/logo_empresa.png'.")
 
 # ------------------------------
-# Título del dashboard
+# Título
 # ------------------------------
 st.markdown(
-    "<h1 style='text-align: center; color: #1f77b4;'>Control Operacional Empresa de Comercio Exterior de Lara</h1>",
+    "<h1 style='text-align:center; color:#1f77b4;'>Control Operacional Empresa de Comercio Exterior de Lara</h1>",
     unsafe_allow_html=True
 )
 
@@ -65,13 +63,11 @@ def cargar_datos(archivo=None):
     else:
         df = pd.read_excel(DATA_FILE)
     df.columns = df.columns.str.strip().str.lower()
-    # Columnas obligatorias
     for col in ["peso neto manejado", "peso neto exportado", "peso neto importado"]:
         if col not in df.columns:
             st.error(f"No se encontró la columna '{col}' en el Excel.")
             return pd.DataFrame()
         df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
-    # Peso total en toneladas
     df["peso total (t)"] = (df["peso neto manejado"] + df["peso neto exportado"]) / 1000
     return df
 
@@ -84,12 +80,12 @@ if df.empty:
     st.stop()
 
 # ------------------------------
-# Crear tabs
+# Tabs
 # ------------------------------
 tabs = st.tabs(["Resumen Ejecutivo", "Operaciones", "Países", "Datos Completos"])
 
 # ------------------------------
-# 1️⃣ Resumen Ejecutivo
+# Resumen Ejecutivo
 # ------------------------------
 with tabs[0]:
     st.markdown("## 📊 Resumen Ejecutivo")
@@ -116,8 +112,9 @@ with tabs[0]:
     cuadro_kpi(col2, "Peso Neto Exportado (t)", f"{peso_exportado_t:,.2f}", colores[1])
     cuadro_kpi(col3, "Peso Neto Importado (t)", f"{peso_importado_t:,.2f}", colores[2])
     cuadro_kpi(col4, "Peso Total (t)", f"{peso_total_t:,.2f}", colores[3])
-    # ------------------------------
-# 2️⃣ Análisis de Operaciones
+
+# ------------------------------
+# Análisis de Operaciones
 # ------------------------------
 with tabs[1]:
     st.markdown("## 📈 Análisis de Operaciones")
@@ -138,7 +135,7 @@ with tabs[1]:
     st.plotly_chart(fig3, use_container_width=True)
 
 # ------------------------------
-# 3️⃣ Análisis por Países
+# Análisis por Países
 # ------------------------------
 with tabs[2]:
     st.markdown("## 🌍 Análisis por Países")
@@ -157,7 +154,7 @@ with tabs[2]:
     st.plotly_chart(fig_total, use_container_width=True)
 
 # ------------------------------
-# 4️⃣ Datos Completos
+# Datos Completos
 # ------------------------------
 with tabs[3]:
     st.markdown("## 🗂 Datos Completos")
