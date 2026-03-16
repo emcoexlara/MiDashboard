@@ -11,15 +11,15 @@ def run(BASE_DIR):
     df = pd.read_excel(archivo) if archivo else pd.read_excel(BASE_DIR / "datos.xlsx")
     df.columns = df.columns.str.strip().str.lower()
 
-    for col in ["peso manejado", "peso neto exportado", "peso neto importado", "destino"]:
+    for col in ["peso neto manejado", "peso neto exportado", "peso neto importado", "destino"]:
         if col not in df.columns:
             st.error(f"No se encontró la columna '{col}' en el Excel.")
             return
 
-    df["peso manejado"] = pd.to_numeric(df["peso manejado"], errors="coerce").fillna(0)
+    df["peso neto manejado"] = pd.to_numeric(df["peso neto manejado"], errors="coerce").fillna(0)
     df["peso neto exportado"] = pd.to_numeric(df["peso neto exportado"], errors="coerce").fillna(0)
     df["peso neto importado"] = pd.to_numeric(df["peso neto importado"], errors="coerce").fillna(0)
-    df["peso total (t)"] = (df["peso manejado"] + df["peso neto exportado"]) / 1000
+    df["peso total (t)"] = (df["peso neto manejado"] + df["peso neto exportado"]) / 1000
 
     paises = df.groupby("destino")[["peso neto exportado", "peso neto importado", "peso total (t)"]].sum().reset_index()
 
