@@ -8,7 +8,9 @@ import plotly.express as px
 # ------------------------------
 BASE_DIR = Path(__file__).parent
 DATA_FILE = BASE_DIR / "datos.xlsx"
-COLOR_LOGO = "#1f77b4"  # Color principal corporativo
+
+# Colores corporativos para cuadros y gráficas
+COLOR1 = "#1f77b4"
 COLOR2 = "#ff7f0e"
 COLOR3 = "#2ca02c"
 COLOR4 = "#d62728"
@@ -21,7 +23,7 @@ def agregar_fondo(imagen_fondo):
         f"""
         <style>
         .stApp {{
-            background-image: url("{imagen_fondo}");
+            background-image: linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.2)), url("{imagen_fondo}");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -32,7 +34,8 @@ def agregar_fondo(imagen_fondo):
         unsafe_allow_html=True
     )
 
-ruta_fondo = BASE_DIR / "fondo.png"  # Imagen del terminal
+# Imagen de fondo de comercio exterior
+ruta_fondo = BASE_DIR / "fondo_comercio.png"  # colocar tu imagen aquí
 if ruta_fondo.exists():
     agregar_fondo(ruta_fondo.as_uri())
 
@@ -81,7 +84,7 @@ with tabs[0]:
     peso_total_t = df['peso total (t)'].sum()
 
     col1, col2, col3, col4 = st.columns(4)
-    colores = [COLOR_LOGO, COLOR2, COLOR3, COLOR4]
+    colores = [COLOR1, COLOR2, COLOR3, COLOR4]
 
     def cuadro_kpi(columna, titulo, valor, color):
         estilo = f"""
@@ -109,14 +112,14 @@ with tabs[1]:
     df_ops = df if pais_sel == "Todos" else df[df["destino"] == pais_sel]
 
     st.subheader("Distribución Peso Neto Exportado (t)")
-    fig1 = px.histogram(df_ops, x=df_ops["peso neto exportado"]/1000, nbins=30, color_discrete_sequence=[COLOR_LOGO])
+    fig1 = px.histogram(df_ops, x=df_ops["peso neto exportado"]/1000, nbins=30, color_discrete_sequence=[COLOR1])
     st.plotly_chart(fig1, use_container_width=True)
     st.subheader("Distribución Peso Neto Importado (t)")
-    fig2 = px.histogram(df_ops, x=df_ops["peso neto importado"]/1000, nbins=30, color_discrete_sequence=[COLOR_LOGO])
+    fig2 = px.histogram(df_ops, x=df_ops["peso neto importado"]/1000, nbins=30, color_discrete_sequence=[COLOR1])
     st.plotly_chart(fig2, use_container_width=True)
 
     st.subheader("Distribución Peso Total (t)")
-    fig3 = px.histogram(df_ops, x=df_ops["peso total (t)"], nbins=30, color_discrete_sequence=[COLOR_LOGO])
+    fig3 = px.histogram(df_ops, x=df_ops["peso total (t)"], nbins=30, color_discrete_sequence=[COLOR1])
     st.plotly_chart(fig3, use_container_width=True)
 
 # ------------------------------
@@ -127,15 +130,15 @@ with tabs[2]:
     df_paises = df.groupby("destino")[["peso neto exportado", "peso neto importado", "peso total (t)"]].sum().reset_index()
 
     st.subheader("Exportaciones por País (t)")
-    fig_exp = px.bar(df_paises, x=df_paises["destino"], y=df_paises["peso neto exportado"]/1000, color_discrete_sequence=[COLOR_LOGO])
+    fig_exp = px.bar(df_paises, x=df_paises["destino"], y=df_paises["peso neto exportado"]/1000, color_discrete_sequence=[COLOR1])
     st.plotly_chart(fig_exp, use_container_width=True)
 
     st.subheader("Importaciones por País (t)")
-    fig_imp = px.bar(df_paises, x=df_paises["destino"], y=df_paises["peso neto importado"]/1000, color_discrete_sequence=[COLOR_LOGO])
+    fig_imp = px.bar(df_paises, x=df_paises["destino"], y=df_paises["peso neto importado"]/1000, color_discrete_sequence=[COLOR1])
     st.plotly_chart(fig_imp, use_container_width=True)
 
     st.subheader("Peso Total por País (t)")
-    fig_total = px.bar(df_paises, x=df_paises["destino"], y=df_paises["peso total (t)"], color_discrete_sequence=[COLOR_LOGO])
+    fig_total = px.bar(df_paises, x=df_paises["destino"], y=df_paises["peso total (t)"], color_discrete_sequence=[COLOR1])
     st.plotly_chart(fig_total, use_container_width=True)
 
     st.subheader("Mapa de Exportaciones (t)")
@@ -144,7 +147,7 @@ with tabs[2]:
         locations=df_paises["destino"],
         locationmode="country names",
         color=df_paises["peso neto exportado"]/1000,
-        color_continuous_scale=[COLOR_LOGO, "#ffffff"],
+        color_continuous_scale=[COLOR1, "#ffffff"],
         title="Exportaciones por País"
     )
     st.plotly_chart(fig_map, use_container_width=True)
@@ -159,7 +162,7 @@ with tabs[3]:
 
     def color_gradiente(s):
         max_val = s.max() if s.max() > 0 else 1
-        return [f"background-color: rgba(255,215,0,{v/max_val}); font-weight: bold; border: 1px solid {COLOR_LOGO};" for v in s]
+        return [f"background-color: rgba(255,215,0,{v/max_val}); font-weight: bold; border: 1px solid {COLOR1};" for v in s]
 
     styler = (
         df_display.style.format({
@@ -170,12 +173,12 @@ with tabs[3]:
         })
         .apply(color_gradiente, subset=["peso neto manejado", "peso neto exportado", "peso total (t)", "peso manejado + exportado (t)"])
         .set_table_styles([{"selector": "th",
-                            "props": [("background-color", COLOR_LOGO),
+                            "props": [("background-color", COLOR1),
                                       ("color", "white"),
                                       ("font-size", "14px"),
-                                      ("border", f"2px solid {COLOR_LOGO}"),
+                                      ("border", f"2px solid {COLOR1}"),
                                       ("text-align", "center")]}])
-        .set_properties(**{"border": f"1px solid {COLOR_LOGO}", "text-align": "center", "font-size": "13px"})
+        .set_properties(**{"border": f"1px solid {COLOR1}", "text-align": "center", "font-size": "13px"})
     )
 
     st.dataframe(styler, use_container_width=True)
