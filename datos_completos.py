@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 
 def run(BASE_DIR):
-    st.markdown("## 🗂 Datos Completos")
+    st.markdown("## 🗂 Datos Completos - Estilo Corporativo")
 
     # Subida de archivo dinámico
     archivo = st.sidebar.file_uploader("Actualizar datos (Excel)", type=["xlsx"])
@@ -22,21 +22,32 @@ def run(BASE_DIR):
     # Nueva columna: Peso Total en toneladas
     df["peso total (t)"] = (df["peso manejado"] + df["peso neto exportado"]) / 1000
 
-    # Crear un estilo visual llamativo
-    def highlight_peso(val):
-        color = "#FFD700"  # Dorado para pesos altos
-        return f"background-color: {color}; font-weight: bold;"
+    # Formato de tabla con colores degradados y recuadros
+    COLOR_LOGO = "#1f77b4"
+    COLOR_GRADIENT = "#FFD700"  # dorado para pesos altos
 
-    # Aplicar estilo solo a columnas de peso
+    # Función de degradado según valor máximo de la columna
+    def color_gradiente(s):
+        max_val = s.max()
+        return [f"background-color: rgba(255,215,0,{v/max_val}); font-weight: bold; border: 1px solid {COLOR_LOGO};"
+                for v in s]
+
     styler = df.style.format({
         "peso manejado": "{:,.2f}",
         "peso neto exportado": "{:,.2f}",
         "peso total (t)": "{:,.2f}"
-    }).applymap(highlight_peso, subset=["peso manejado", "peso neto exportado", "peso total (t)"])\
+    }).apply(color_gradiente, subset=["peso manejado", "peso neto exportado", "peso total (t)"])\
       .set_table_styles([
-          {"selector": "th", "props": [("background-color", "#1f77b4"),
-                                       ("color", "white"),
-                                       ("font-size", "14px")]}
-      ])
+          {"selector": "th",
+           "props": [("background-color", COLOR_LOGO),
+                     ("color", "white"),
+                     ("font-size", "14px"),
+                     ("border", f"2px solid {COLOR_LOGO}"),
+                     ("text-align", "center")]}
+      ]).set_properties(**{
+          "border": f"1px solid {COLOR_LOGO}",
+          "text-align": "center",
+          "font-size": "13px"
+      })
 
     st.dataframe(styler, use_container_width=True)
