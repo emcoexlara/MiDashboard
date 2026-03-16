@@ -1,36 +1,58 @@
 # -*- coding: utf-8 -*-
+
 import streamlit as st
 import pandas as pd
-import os
+from pathlib import Path
+
 
 def run(BASE_DIR):
-    st.markdown("<h2 style='text-align:center; color:#4B7BE5'>Resumen Ejecutivo</h2>", unsafe_allow_html=True)
 
-    ruta_excel = os.path.join(BASE_DIR, "data", "datos.xlsx")
-    if not os.path.exists(ruta_excel):
-        st.error(f"No se encontro el archivo Excel: {ruta_excel}")
+    st.markdown("## Resumen Ejecutivo")
+
+    # Ruta del archivo Excel
+    ruta_excel = BASE_DIR / "datos.xlsx"
+
+    # Verificar si el archivo existe
+    if not ruta_excel.exists():
+        st.error(f"No se encontró el archivo Excel: {ruta_excel}")
         return
 
+    # Cargar datos
     df = pd.read_excel(ruta_excel)
-    df.columns = df.columns.str.strip().str.lower().str.replace(" ","_")
 
-    peso_exportado_col = next((c for c in df.columns if "export" in c), None)
-    peso_importado_col = next((c for c in df.columns if "import" in c), None)
+    # Normalizar nombres de columnas
+    df.columns = df.columns.str.strip().str.lower()
 
-    if not peso_exportado_col or not peso_importado_col:
-        st.error("Faltan columnas de peso exportado o importado.")
-        return
+    # Convertir a valores numéricos
+    if "peso neto exportado" in df.columns:
+        df["peso neto exportado"] = pd.to_numeric(
+            df["peso neto exportado"], errors="coerce"
+        ).fillna(0)
 
-    df[peso_exportado_col] = pd.to_numeric(df[peso_exportado_col], errors="coerce")
-    df[peso_importado_col] = pd.to_numeric(df[peso_importado_col], errors="coerce")
+    if "peso neto importado" in df.columns:
+        df["peso neto importado"] = pd.to_numeric(
+            df["peso neto importado"], errors="coerce"
+        ).fillna(0)
 
-    # KPIs
-    total_operaciones = len(df)
-    total_exportado = df[peso_exportado_col].sum()
-    total_importado = df[peso_importado_col].sum()
+    # Indicadores principales
+    operaciones_totales = len(df)
+    peso_exportado_total = df["peso neto exportado"].sum()
+    peso_importado_total = df["peso neto importado"].sum()
 
-    KPI_COLORS = ["#4B7BE5", "#F5A623", "#34C759"]
+    # Mostrar indicadores
     col1, col2, col3 = st.columns(3)
-    col1.markdown(f"<div style='background-color:{KPI_COLORS[0]}; padding:20px; border-radius:10px; text-align:center'><h3 style='color:white'>Operaciones Totales</h3><h1 style='color:white'>{total_operaciones:,}</h1></div>", unsafe_allow_html=True)
-    col2.markdown(f"<div style='background-color:{KPI_COLORS[1]}; padding:20px; border-radius:10px; text-align:center'><h3 style='color:white'>Peso Neto Exportado (kg)</h3><h1 style='color:white'>{total_exportado:,}</h1></div>", unsafe_allow_html=True)
-    col3.markdown(f"<div style='background-color:{KPI_COLORS[2]}; padding:20px; border-radius:10px; text-align:center'><h3 style='color:white'>Peso Neto Importado (kg)</h3><h1 style='color:white'>{total_importado:,}</h1></div>", unsafe_allow_html=True)
+
+    col1.metric(
+        "Operaciones Totales",
+        f"{operaciones_totales:,}"
+    )
+
+    col2.metric(
+        "Peso Neto Exportado Total",
+        f"{peso_exportado_total:,.2f}"
+    )
+
+    col3.metric(
+        "Peso Neto Importado Total",
+        f"{peso_importado_total:,.2f}"
+    )
