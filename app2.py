@@ -7,6 +7,7 @@ import plotly.express as px
 # Configuración general
 # ------------------------------
 BASE_DIR = Path(__file__).parent
+ASSETS_DIR = BASE_DIR / "assets"
 DATA_FILE = BASE_DIR / "datos.xlsx"
 
 # Colores corporativos para KPIs y gráficas
@@ -16,15 +17,17 @@ COLOR3 = "#2ca02c"
 COLOR4 = "#d62728"
 
 # ------------------------------
-# Función para agregar fondo
+# Fondo y logo
 # ------------------------------
-def agregar_fondo(imagen_fondo):
+# Fondo de comercio exterior
+ruta_fondo = ASSETS_DIR / "fondo_comercio.jpg"
+if ruta_fondo.exists():
     st.markdown(
         f"""
         <style>
         .stApp {{
             background: linear-gradient(rgba(255,255,255,0.25), rgba(255,255,255,0.25)),
-                        url("{imagen_fondo}");
+                        url("{ruta_fondo.as_uri()}");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -34,13 +37,23 @@ def agregar_fondo(imagen_fondo):
         """,
         unsafe_allow_html=True
     )
-
-# Aplicar fondo de comercio exterior
-ruta_fondo = BASE_DIR / "fondo_comercio.jpg"  # imagen de comercio exterior
-if ruta_fondo.exists():
-    agregar_fondo(ruta_fondo.as_uri())
 else:
-    st.warning("No se encontró la imagen de fondo. Verifica que esté en la carpeta raíz y se llame 'fondo_comercio.jpg'.")
+    st.warning("No se encontró la imagen de fondo.")
+
+# Logo de la empresa
+ruta_logo = ASSETS_DIR / "logo_empresa.png"
+if ruta_logo.exists():
+    st.sidebar.image(ruta_logo, width=150)
+else:
+    st.sidebar.warning("No se encontró el logo de la empresa.")
+
+# ------------------------------
+# Título del dashboard
+# ------------------------------
+st.markdown(
+    "<h1 style='text-align: center; color: #1f77b4;'>Control Operacional Empresa de Comercio Exterior de Lara</h1>",
+    unsafe_allow_html=True
+)
 
 # ------------------------------
 # Función para cargar datos
@@ -103,8 +116,7 @@ with tabs[0]:
     cuadro_kpi(col2, "Peso Neto Exportado (t)", f"{peso_exportado_t:,.2f}", colores[1])
     cuadro_kpi(col3, "Peso Neto Importado (t)", f"{peso_importado_t:,.2f}", colores[2])
     cuadro_kpi(col4, "Peso Total (t)", f"{peso_total_t:,.2f}", colores[3])
-
-# ------------------------------
+    # ------------------------------
 # 2️⃣ Análisis de Operaciones
 # ------------------------------
 with tabs[1]:
@@ -112,6 +124,7 @@ with tabs[1]:
     paises = ["Todos"] + list(df["destino"].unique())
     pais_sel = st.selectbox("Filtrar por País", paises)
     df_ops = df if pais_sel == "Todos" else df[df["destino"] == pais_sel]
+
     st.subheader("Distribución Peso Neto Exportado (t)")
     fig1 = px.histogram(df_ops, x=df_ops["peso neto exportado"]/1000, nbins=30, color_discrete_sequence=[COLOR1])
     st.plotly_chart(fig1, use_container_width=True)
