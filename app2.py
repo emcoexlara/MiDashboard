@@ -1,51 +1,25 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
-from pathlib import Path
-from PIL import Image
+import pandas as pd
 
-# Rutas
-BASE_DIR = Path(__file__).parent
-DATA_DIR = BASE_DIR / "data"
+def run(BASE_DIR):
+    st.markdown("## 📊 Resumen Ejecutivo")
 
-# Importar módulos
-import resumen_ejecutivo
-import analisis_operaciones
-import analisis_paises
-import datos_completos
+    archivo = st.sidebar.file_uploader("Actualizar datos (Excel)", type=["xlsx"])
+    if archivo:
+        df = pd.read_excel(archivo)
+    else:
+        df = pd.read_excel(BASE_DIR / "datos.xlsx")
 
-# Configuración Streamlit
-st.set_page_config(
-    page_title="Dashboard Empresarial",
-    page_icon="📊",
-    layout="wide"
-)
+    df.columns = df.columns.str.strip().str.lower()
+    df["peso neto exportado"] = pd.to_numeric(df.get("peso neto exportado", 0), errors="coerce").fillna(0)
+    df["peso neto importado"] = pd.to_numeric(df.get("peso neto importado", 0), errors="coerce").fillna(0)
 
-# Barra superior corporativa
-logo_path = DATA_DIR / "logo.png"  # Coloca tu logo aquí
-if logo_path.exists():
-    logo = Image.open(logo_path)
-    col1, col2 = st.columns([0.9, 0.1])
-    with col1:
-        st.markdown("<h2 style='color:white; margin:0;'>Mi Empresa - Dashboard</h2>", unsafe_allow_html=True)
-    with col2:
-        st.image(logo, width=50)
-    st.markdown("<div style='background-color:#4B7BE5; height:10px; border-radius:5px'></div>", unsafe_allow_html=True)
-else:
-    st.markdown("<h2 style='color:#4B7BE5;'>Mi Empresa - Dashboard (Logo no encontrado)</h2>", unsafe_allow_html=True)
+    operaciones_totales = len(df)
+    peso_exportado_total = df["peso neto exportado"].sum()
+    peso_importado_total = df["peso neto importado"].sum()
 
-# Menú lateral
-st.sidebar.markdown("<h3 style='text-align:center; color:#4B7BE5'>Menu Principal</h3>", unsafe_allow_html=True)
-pagina = st.sidebar.radio(
-    "Selecciona una página:",
-    ("Resumen Ejecutivo", "Analisis de Operaciones", "Analisis por Paises", "Datos Completos")
-)
-
-# Ejecutar página según selección
-if pagina == "Resumen Ejecutivo":
-    resumen_ejecutivo.run(BASE_DIR)
-elif pagina == "Analisis de Operaciones":
-    analisis_operaciones.run(BASE_DIR)
-elif pagina == "Analisis por Paises":
-    analisis_paises.run(BASE_DIR)
-elif pagina == "Datos Completos":
-    datos_completos.run(BASE_DIR)
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Operaciones Totales", operaciones_totales, delta_color="inverse")
+    col2.metric("Peso Neto Exportado (kg)", f"{peso_exportado_total:,.2f}", delta_color="normal")
+    col3.metric("Peso Neto Importado (kg)", f"{peso_importado_total:,.2f}", delta_color="normal")
