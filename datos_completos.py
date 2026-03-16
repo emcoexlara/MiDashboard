@@ -12,11 +12,7 @@ def run(BASE_DIR):
         df = pd.read_excel(BASE_DIR / "datos.xlsx")
 
     df.columns = df.columns.str.strip().str.lower()
-    st.dataframe(df, use_container_width=True)
+    df["peso neto exportado"] = pd.to_numeric(df.get("peso neto exportado", 0), errors="coerce").fillna(0)/1000
+    df["peso neto importado"] = pd.to_numeric(df.get("peso neto importado", 0), errors="coerce").fillna(0)/1000
 
-    st.download_button(
-        label="📥 Descargar CSV",
-        data=df.to_csv(index=False),
-        file_name="datos_comercio_exterior.csv",
-        mime="text/csv"
-    )
+    st.dataframe(df, use_container_width=True)
