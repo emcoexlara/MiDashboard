@@ -1,26 +1,22 @@
-# app_completo_fondo.py
+# app_graficos_prioritarios.py
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import os
-from datetime import datetime
-import numpy as np
 import base64
+import numpy as np
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(
     page_title="Control Operacional de Comercio Exterior de Lara",
-    page_icon="🌐",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
-# --- PALETA CORPORATIVA ---
+# --- COLORES ---
 COLOR_TITULO = "#000000"
 COLOR_CUADRO = "#FFFFFF"
-COLOR_TEXTO = "#003366"
 
-# --- FUNCIÓN PARA COLOCAR FONDO ---
+# --- FONDO ---
 def add_bg_from_local(image_file):
     if os.path.exists(image_file):
         with open(image_file, "rb") as f:
@@ -33,97 +29,45 @@ def add_bg_from_local(image_file):
                 background-size: cover;
             }}
             </style>
-            """,
-            unsafe_allow_html=True
+            """, unsafe_allow_html=True
         )
 
-# --- APLICAR FONDO ---
-fondo_path = "assets/fondo_comercio.jpg"
-add_bg_from_local(fondo_path)
-
-# --- ESTILOS ---
-st.markdown(
-    f"""
-    <style>
-        .titulo {{
-            color: {COLOR_TITULO};
-            font-size: 36px;
-            font-weight: bold;
-            text-align: center;
-            padding: 10px;
-            border-radius: 10px;
-        }}
-        .cuadro {{
-            background-color: {COLOR_CUADRO};
-            padding: 15px;
-            border-radius: 10px;
-            text-align:center;
-        }}
-    </style>
-    """, unsafe_allow_html=True
-)
-
-# --- TÍTULO ---
-st.markdown(f"<div class='titulo'>Control Operacional de Comercio Exterior de Lara</div>", unsafe_allow_html=True)
+add_bg_from_local("assets/fondo_comercio.jpg")
 
 # --- LOGO ---
-logo_path = "assets/logo_empresa.png"
-if os.path.exists(logo_path):
-    st.image(logo_path, width=120)
+if os.path.exists("assets/logo_empresa.png"):
+    st.image("assets/logo_empresa.png", width=120)
 
-# --- CARGAR DATOS ---
+# --- TÍTULO ---
+st.markdown(f"<h1 style='color:{COLOR_TITULO}; text-align:center'>Control Operacional de Comercio Exterior de Lara</h1>", unsafe_allow_html=True)
+
+# --- CARGA DE DATOS ---
 @st.cache_data
 def load_data():
-    try:
-        df = pd.read_excel("data/datos.xlsx")
-        df.columns = df.columns.str.strip().str.upper().str.replace(" ", "_")
-        for col in ["PESO_NETO_EXPORTADO", "PESO_NETO_IMPORTADO", "PESO_NETO_MANEJADO"]:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-            else:
-                df[col] = 0
-        return df
-    except Exception as e:
-        st.error(f"No se pudo cargar el archivo Excel: {e}")
-        return pd.DataFrame()
+    df = pd.read_excel("data/datos.xlsx")
+    df.columns = df.columns.str.strip().str.upper().str.replace(" ", "_")
+    # Aseguramos columnas numéricas
+    for col in ["PESO_NETO_EXPORTADO", "PESO_NETO_IMPORTADO", "PESO_NETO_MANEJADO", "CONTENEDORES"]:
+        if col not in df.columns:
+            df[col] = 0
+        else:
+            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+    return df
 
 df = load_data()
-if df.empty:
-    st.stop()
 df_filtrado = df.copy()
 
-# --- SIDEBAR FILTROS ---
+# --- FILTROS SIDEBAR ---
 st.sidebar.header("Filtros")
-fecha_seleccion = st.sidebar.date_input("Fecha", [])
 destino_seleccion = st.sidebar.multiselect("Destino", df['DESTINO'].dropna().unique() if 'DESTINO' in df.columns else [])
 contenido_seleccion = st.sidebar.multiselect("Contenido", df['CONTENIDO'].dropna().unique() if 'CONTENIDO' in df.columns else [])
 
-# --- FILTRAR DATA ---
-if fecha_seleccion:
-    df_filtrado = df_filtrado[df_filtrado['FECHA'].isin(fecha_seleccion)]
 if destino_seleccion:
     df_filtrado = df_filtrado[df_filtrado['DESTINO'].isin(destino_seleccion)]
 if contenido_seleccion:
     df_filtrado = df_filtrado[df_filtrado['CONTENIDO'].isin(contenido_seleccion)]
 
-# --- KPIs ---
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    st.markdown(f"<div class='cuadro'>📦<br>Operaciones<br>{len(df_filtrado)}</div>", unsafe_allow_html=True)
-
-with col2:
-    peso_exportado = df_filtrado["PESO_NETO_EXPORTADO"].sum() if "PESO_NETO_EXPORTADO" in df_filtrado.columns else 0
-    st.markdown(f"<div class='cuadro'>🌍<br>Peso Neto Exportado (t)<br>{peso_exportado:,.2f}</div>", unsafe_allow_html=True)
-
-with col3:
-    peso_importado = df_filtrado["PESO_NETO_IMPORTADO"].sum() if "PESO_NETO_IMPORTADO" in df_filtrado.columns else 0
-    st.markdown(f"<div class='cuadro'>📥<br>Peso Neto Importado (t)<br>{peso_importado:,.2f}</div>", unsafe_allow_html=True)
-
-with col4:
-    peso_total = df_filtrado["PESO_NETO_MANEJADO"].sum() if "PESO_NETO_MANEJADO" in df_filtrado.columns else 0
-    st.markdown(f"<div class='cuadro'>⚖️<br>Peso Total (t)<br>{peso_total:,.2f}</div>", unsafe_allow_html=True)
-    # --- MAPA 3D ---
+# --- GRÁFICO 3D POR PAÍS ---
 if 'DESTINO' in df_filtrado.columns:
     if 'LATITUD' not in df_filtrado.columns or 'LONGITUD' not in df_filtrado.columns:
         destinos = df_filtrado['DESTINO'].unique()
@@ -139,6 +83,21 @@ if 'DESTINO' in df_filtrado.columns:
         color='DESTINO',
         size='PESO_NETO_EXPORTADO',
         hover_name='DESTINO',
-        height=600
+        height=600,
+        title="Mapa 3D por Destino y Peso Exportado"
     )
     st.plotly_chart(fig_map, use_container_width=True)
+
+# --- GRÁFICO DE CONTENEDORES VS TONELADA ---
+if 'CONTENEDORES' in df_filtrado.columns and 'PESO_NETO_MANEJADO' in df_filtrado.columns:
+    fig_contenedores = px.scatter(
+        df_filtrado,
+        x='CONTENEDORES',
+        y='PESO_NETO_MANEJADO',
+        color='DESTINO',
+        size='PESO_NETO_MANEJADO',
+        hover_name='DESTINO',
+        title="Contenedores vs Toneladas Manejadas",
+        height=500
+    )
+    st.plotly_chart(fig_contenedores, use_container_width=True)
