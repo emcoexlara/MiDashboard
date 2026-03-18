@@ -104,49 +104,22 @@ if 'DESTINO' in df_filtrado.columns:
     st.plotly_chart(fig_destinos, use_container_width=True)
 
 # --- MAPA DE EXPORTACIONES ---
-st.markdown(f"<h2 style='color:{COLOR_TITULO}; text-align:center;'>Mapa de Exportaciones por País</h2>", unsafe_allow_html=True)
-
-# Filtrar datos con destino y peso
-df_map = df_filtrado.dropna(subset=['DESTINO', 'Peso Neto Exportado'])
-
-# Crear el mapa geográfico
-fig_map = px.scatter_geo()
-    df_map,
-    locations="DESTINO",          # nombres de países
-    locationmode="country names",
-    size="Peso Neto Exportado",    # tamaño según toneladas
-    hover_name="DESTINO",
-    color="Peso Neto Exportado",
-    color_continuous_scale=[COLOR_PRINCIPAL, COLOR_SECUNDARIO],
-    projection="natural earth",
-    template="plotly_white"}
-    # --- Colores corporativos ---
-COLOR_TITULO = "#1F4E79"       # Azul para títulos
-COLOR_PRINCIPAL = "#F2994A"    # Naranja para gráficos
-
-# --- Mapa de exportaciones por país ---
-st.markdown(
-    f"<h2 style='color:{COLOR_TITULO}; text-align:center;'>Mapa de Exportaciones por País</h2>",
-    unsafe_allow_html=True
-)
-
-# Agrupar exportaciones por país
-df_map = df_filtrado.groupby('DESTINO')['Peso Neto Exportado'].sum().reset_index()
-
-# Crear mapa de coropletas por país
 import plotly.express as px
+import streamlit as st
 
-# Filtrar datos para el mapa
+# --- Bloque de mapa de exportaciones por país ---
+
+# Filtrar los datos que tengan DESTINO y Peso Neto Exportado
 df_map = df[['DESTINO', 'Peso Neto Exportado']].dropna()
 
-# Crear el mapa de exportaciones por país
+# Crear el mapa
 fig_map = px.choropleth(
-    df_map,
-    locations="DESTINO",
-    locationmode="country names",
-    color="Peso Neto Exportado",
-    hover_name="DESTINO",
-    color_continuous_scale=px.colors.sequential.Plasma,
+    data_frame=df_map,
+    locations="DESTINO",            # Nombre de los países
+    locationmode="country names",   # Reconoce nombres de países
+    color="Peso Neto Exportado",    # Color según toneladas exportadas
+    hover_name="DESTINO",           # Mostrar país al pasar el mouse
+    color_continuous_scale=px.colors.sequential.Plasma,  # Paleta de colores
     title="Exportaciones por país (toneladas)",
     template="plotly_white"
 )
