@@ -15,8 +15,8 @@ st.set_page_config(layout="wide", page_title="Dashboard Ejecutivo")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 fondo_path = os.path.join(BASE_DIR, "assets", "fondo_comercio.jpg")
-logo_path = os.path.join(BASE_DIR, "assets", "logo_empresa.png")
-excel_path = os.path.join(BASE_DIR, "data", "datos.xlsx")
+logo_path = os.path.join(BASE_DIR, "assets", "logo_empreda.png")
+excel_path = os.path.join(BASE_DIR, "data", "datos.xlsx")  # Archivo correcto
 
 def get_base64_safe(file_path):
     if not os.path.exists(file_path):
