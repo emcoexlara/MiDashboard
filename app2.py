@@ -14,7 +14,7 @@ st.set_page_config(layout="wide", page_title="Dashboard Ejecutivo")
 # ------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-fondo_path = os.path.join(BASE_DIR, "assets", "fondo.jpg")
+fondo_path = os.path.join(BASE_DIR, "assets", "fondo_comercio.jpg")
 logo_path = os.path.join(BASE_DIR, "assets", "logo.png")
 excel_path = os.path.join(BASE_DIR, "data", "data.xlsx")
 
