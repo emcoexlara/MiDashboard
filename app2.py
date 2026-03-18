@@ -14,7 +14,7 @@ st.set_page_config(
 # --- COLORES CORPORATIVOS ---
 COLOR_FONDO = "#f5f5f5"
 COLOR_CUADRO = "#003366"  # azul corporativo
-COLOR_ICONO = "#FFD700"   # dorado para iconos
+COLOR_ICONO = "#FFD700"   # dorado
 
 # --- FUNCIONES PARA CARGAR RECURSOS ---
 def get_base64(file_path):
@@ -31,6 +31,7 @@ st.markdown(
     .stApp {{
         background-image: url("data:image/jpg;base64,{get_base64(fondo_path)}");
         background-size: cover;
+        background-attachment: fixed;
     }}
     </style>
     """,
@@ -43,9 +44,7 @@ st.image(logo_path, width=150)
 @st.cache_data
 def load_data():
     df = pd.read_excel("data/datos.xlsx")
-    # Limpiar nombres de columnas
     df.columns = [col.strip() for col in df.columns]
-    # Convertir columnas numéricas
     for col in ["Peso Neto Exportado", "Peso Neto Importado", "Peso Neto Manejado", "LLENOS RECIBIDOS (EXPORTADOS)"]:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
@@ -64,21 +63,30 @@ if destino_seleccion:
 if contenido_seleccion:
     df_filtrado = df_filtrado[df_filtrado['CONTENIDO'].isin(contenido_seleccion)]
 
-# --- KPIs ---
-col1, col2, col3, col4 = st.columns(4)
+# --- KPIs CON ICONOS ---
+st.markdown(
+    f"<h1 style='color:{COLOR_CUADRO}; text-align:center;'>Control Operacional de Comercio Exterior de Lara</h1>",
+    unsafe_allow_html=True
+)
 
-col1.metric("Operaciones", f"{len(df_filtrado):,}")
-col2.metric("Peso Neto Exportado (t)", f"{df_filtrado['Peso Neto Exportado'].sum():,.2f}")
-col3.metric("Peso Neto Importado (t)", f"{df_filtrado['Peso Neto Importado'].sum():,.2f}")
-col4.metric("Peso Total (t)", f"{df_filtrado['Peso Neto Manejado'].sum():,.2f}")
+col1, col2, col3, col4 = st.columns(4)
+col1.markdown(f"<div style='background-color:{COLOR_CUADRO}; padding:15px; border-radius:10px; text-align:center; color:white;'>"
+               f"<h3>📦 Operaciones</h3><h2>{len(df_filtrado):,}</h2></div>", unsafe_allow_html=True)
+col2.markdown(f"<div style='background-color:{COLOR_CUADRO}; padding:15px; border-radius:10px; text-align:center; color:white;'>"
+               f"<h3>🚢 Peso Neto Exportado (t)</h3><h2>{df_filtrado['Peso Neto Exportado'].sum():,.2f}</h2></div>", unsafe_allow_html=True)
+col3.markdown(f"<div style='background-color:{COLOR_CUADRO}; padding:15px; border-radius:10px; text-align:center; color:white;'>"
+               f"<h3>📥 Peso Neto Importado (t)</h3><h2>{df_filtrado['Peso Neto Importado'].sum():,.2f}</h2></div>", unsafe_allow_html=True)
+col4.markdown(f"<div style='background-color:{COLOR_CUADRO}; padding:15px; border-radius:10px; text-align:center; color:white;'>"
+               f"<h3>⚖️ Peso Total (t)</h3><h2>{df_filtrado['Peso Neto Manejado'].sum():,.2f}</h2></div>", unsafe_allow_html=True)
 
 # --- GRÁFICOS ---
-st.subheader("Análisis de Contenedores vs Toneladas")
-contenedores_df = df_filtrado.groupby('CONTENIDO')[['LLENOS RECIBIDOS (EXPORTADOS)', 'Peso Neto Exportado']].sum().reset_index()
-fig_contenedores = px.bar(contenedores_df, x='CONTENIDO', y='LLENOS RECIBIDOS (EXPORTADOS)', color='Peso Neto Exportado',
-                          labels={"LLENOS RECIBIDOS (EXPORTADOS)":"Contenedores", "Peso Neto Exportado":"Toneladas"},
-                          title="Contenedores vs Toneladas")
-st.plotly_chart(fig_contenedores, use_container_width=True)
+st.subheader("Contenedores vs Toneladas")
+if 'CONTENIDO' in df_filtrado.columns:
+    contenedores_df = df_filtrado.groupby('CONTENIDO')[['LLENOS RECIBIDOS (EXPORTADOS)', 'Peso Neto Exportado']].sum().reset_index()
+    fig_contenedores = px.bar(contenedores_df, x='CONTENIDO', y='LLENOS RECIBIDOS (EXPORTADOS)',
+                              color='Peso Neto Exportado', labels={"LLENOS RECIBIDOS (EXPORTADOS)":"Contenedores", "Peso Neto Exportado":"Toneladas"},
+                              title="Contenedores vs Toneladas")
+    st.plotly_chart(fig_contenedores, use_container_width=True)
 
 st.subheader("Mapa 3D de Exportaciones")
 if 'LONGITUD' in df_filtrado.columns and 'LATITUD' in df_filtrado.columns:
@@ -89,7 +97,7 @@ if 'LONGITUD' in df_filtrado.columns and 'LATITUD' in df_filtrado.columns:
 else:
     st.warning("Las columnas 'LONGITUD' y 'LATITUD' no existen en los datos para mostrar el mapa 3D.")
 
-# --- GRÁFICO DE DESTINOS ---
 st.subheader("Distribución por País de Destino")
-fig_destinos = px.pie(df_filtrado, names='DESTINO', values='Peso Neto Exportado', title="Peso Neto Exportado por Destino")
-st.plotly_chart(fig_destinos, use_container_width=True)
+if 'DESTINO' in df_filtrado.columns:
+    fig_destinos = px.pie(df_filtrado, names='DESTINO', values='Peso Neto Exportado', title="Peso Neto Exportado por Destino")
+    st.plotly_chart(fig_destinos, use_container_width=True)
