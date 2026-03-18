@@ -7,7 +7,7 @@ import base64
 # ------------------------------
 # CONFIGURACIÓN DE PÁGINA
 # ------------------------------
-BASE_DIR = Path(file).parent
+BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
 DATA_FILE = DATA_DIR / "datos.xlsx"
 ASSETS_DIR = BASE_DIR / "assets"
