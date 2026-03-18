@@ -56,6 +56,13 @@ def cargar_datos(file=None):
     
     df.columns = df.columns.str.strip().str.lower()
     
+    # Verificar columnas esenciales
+    columnas_esperadas = ["fecha", "destino", "contenido", "peso neto manejado",
+                          "peso neto exportado", "peso neto importado"]
+    for col in columnas_esperadas:
+        if col not in df.columns:
+            df[col] = 0 if "peso" in col else ""
+    
     # Convertir pesos a numérico
     for col in ["peso neto manejado", "peso neto exportado", "peso neto importado"]:
         df[col] = pd.to_numeric(df.get(col, 0), errors="coerce").fillna(0)
@@ -67,7 +74,7 @@ def cargar_datos(file=None):
     
     # Fecha
     if 'fecha' in df.columns:
-        df['fecha'] = pd.to_datetime(df['fecha'])
+        df['fecha'] = pd.to_datetime(df['fecha'], errors='coerce')
     
     return df
 
@@ -107,8 +114,7 @@ pne_seleccion = (0,0)
 if 'peso neto exportado' in df.columns:
     min_val, max_val = df['peso neto exportado'].min(), df['peso neto exportado'].max()
     pne_seleccion = st.sidebar.slider("Peso Neto Exportado (kg)", float(min_val), float(max_val), (float(min_val), float(max_val)))
-
-pni_seleccion = (0,0)
+    pni_seleccion = (0,0)
 if 'peso neto importado' in df.columns:
     min_val, max_val = df['peso neto importado'].min(), df['peso neto importado'].max()
     pni_seleccion = st.sidebar.slider("Peso Neto Importado (kg)", float(min_val), float(max_val), (float(min_val), float(max_val)))
@@ -117,6 +123,7 @@ if 'peso neto importado' in df.columns:
 # APLICAR FILTROS
 # ------------------------------
 df_filtrado = df.copy()
+
 if fecha_seleccion and 'fecha' in df_filtrado.columns:
     df_filtrado = df_filtrado[df_filtrado['fecha'] == pd.to_datetime(fecha_seleccion)]
 if destino_seleccion:
@@ -214,7 +221,6 @@ with tabs[2]:
         df_p = df_filtrado.groupby("destino")[["peso total (t)"]].sum().reset_index()
         fig_p = px.bar(df_p, x="destino", y="peso total (t)", color_discrete_sequence=[COLOR1])
         st.plotly_chart(fig_p, use_container_width=True)
-
-with tabs[3]:
+    with tabs[3]:
     seccion_titulo("Mapa 3D Destinos Exportados")
     st.info("No se puede mostrar el mapa 3D porque las columnas de latitud y longitud no existen en el Excel.")
