@@ -229,7 +229,7 @@ with tabs[1]:
     fig_imp = px.histogram(df_filtrado, x="peso neto importado (t)", nbins=30, color_discrete_sequence=[COLOR3])
     st.plotly_chart(fig_exp, use_container_width=True)
     st.plotly_chart(fig_imp, use_container_width=True)
-    with tabs[2]:
+with tabs[2]:
     seccion_titulo("Países")
     if 'destino' in df_filtrado.columns:
         df_p = df_filtrado.groupby("destino")[["peso total (t)"]].sum().reset_index()
