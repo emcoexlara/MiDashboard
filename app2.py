@@ -119,7 +119,43 @@ fig_map = px.scatter_geo(
     color="Peso Neto Exportado",
     color_continuous_scale=[COLOR_PRINCIPAL, COLOR_SECUNDARIO],
     projection="natural earth",
-    template="plotly_white"
+    template="plotly_white"}
+    # --- Colores corporativos ---
+COLOR_TITULO = "#1F4E79"       # Azul para títulos
+COLOR_PRINCIPAL = "#F2994A"    # Naranja para gráficos
+
+# --- Mapa de exportaciones por país ---
+st.markdown(
+    f"<h2 style='color:{COLOR_TITULO}; text-align:center;'>Mapa de Exportaciones por País</h2>",
+    unsafe_allow_html=True
+)
+
+# Agrupar exportaciones por país
+df_map = df_filtrado.groupby('DESTINO')['Peso Neto Exportado'].sum().reset_index()
+
+# Crear mapa de coropletas por país
+import plotly.express as px
+
+fig_map = px.choropleth(
+    df_map,
+    locations="DESTINO",
+    locationmode="country names",
+    color="Peso Neto Exportado",
+    hover_name="DESTINO",
+    color_continuous_scale=px.colors.sequential.Plasma,
+    title="Exportaciones por país (toneladas)"
+)
+
+# Ajustes estéticos
+fig_map.update_layout(
+    margin={"r":0,"t":30,"l":0,"b":0},
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    font_color=COLOR_TITULO
+)
+
+# Mostrar el mapa en Streamlit
+st.plotly_chart(fig_map, use_container_width=True)
 )
 
 # Mostrar el mapa en Streamlit
