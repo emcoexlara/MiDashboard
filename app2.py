@@ -221,6 +221,6 @@ with tabs[2]:
         df_p = df_filtrado.groupby("destino")[["peso total (t)"]].sum().reset_index()
         fig_p = px.bar(df_p, x="destino", y="peso total (t)", color_discrete_sequence=[COLOR1])
         st.plotly_chart(fig_p, use_container_width=True)
-    with tabs[3]:
+with tabs[3]:
     seccion_titulo("Mapa 3D Destinos Exportados")
     st.info("No se puede mostrar el mapa 3D porque las columnas de latitud y longitud no existen en el Excel.")
