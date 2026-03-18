@@ -58,32 +58,16 @@ def load_data():
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
     df["PESO TOTAL"] = df.get("PESO NETO EXPORTADO",0) + df.get("PESO NETO IMPORTADO",0)
-    
+
     if "FECHA" in df.columns:
         df["FECHA"] = pd.to_datetime(df["FECHA"], errors='coerce')
-    
-    # Generar columnas de latitud y longitud aproximadas si no existen
-    if "DESTINO" in df.columns:
-        import geopy
-        from geopy.geocoders import Nominatim
-        geolocator = Nominatim(user_agent="geoapi")
-        latitudes = []
-        longitudes = []
-        for dest in df["DESTINO"]:
-            try:
-                location = geolocator.geocode(dest)
-                if location:
-                    latitudes.append(location.latitude)
-                    longitudes.append(location.longitude)
-                else:
-                    latitudes.append(None)
-                    longitudes.append(None)
-            except:
-                latitudes.append(None)
-                longitudes.append(None)
-        df["LATITUD"] = latitudes
-        df["LONGITUD"] = longitudes
-    
+
+    # LATITUD y LONGITUD deben estar en Excel
+    if "LATITUD" not in df.columns:
+        df["LATITUD"] = None
+    if "LONGITUD" not in df.columns:
+        df["LONGITUD"] = None
+
     return df
 
 df = load_data()
@@ -108,6 +92,7 @@ if 'FECHA' in df_filtrado.columns and fecha_seleccion:
 # ================= KPIs =================
 st.markdown("<h2 style='color:#0B3C5D;'>Resumen Ejecutivo</h2>", unsafe_allow_html=True)
 kpi_col1, kpi_col2, kpi_col3, kpi_col4 = st.columns(4)
+
 def kpi_box(col, titulo, valor, icon_url, bg_color="#FFFFFF"):
     col.markdown(f"""
     <div style="background-color:{bg_color}; padding:15px; border-radius:10px; text-align:center;">
@@ -140,11 +125,13 @@ if 'CONTENIDO' in df_filtrado.columns:
 # ================= MAPA 3D =================
 st.markdown("<h2 style='color:#0B3C5D;'>Mapa de Destinos Exportados</h2>", unsafe_allow_html=True)
 if all(col in df_filtrado.columns for col in ["LATITUD","LONGITUD","PESO NETO EXPORTADO","DESTINO"]):
-    fig_map = px.scatter_3d(df_filtrado.dropna(subset=["LATITUD","LONGITUD"]),
-                            x='LONGITUD', y='LATITUD', z='PESO NETO EXPORTADO',
-                            color='DESTINO', size='PESO NETO EXPORTADO', hover_name='DESTINO',
-                            color_discrete_sequence=px.colors.qualitative.Prism)
-    st.plotly_chart(fig_map, use_container_width=True)
+    df_map = df_filtrado.dropna(subset=["LATITUD","LONGITUD"])
+    if not df_map.empty:
+        fig_map = px.scatter_3d(df_map,
+                                x='LONGITUD', y='LATITUD', z='PESO NETO EXPORTADO',
+                                color='DESTINO', size='PESO NETO EXPORTADO', hover_name='DESTINO',
+                                color_discrete_sequence=px.colors.qualitative.Prism)
+        st.plotly_chart(fig_map, use_container_width=True)
 
 # ================= TABLA COMPLETA =================
 st.markdown("<h2 style='color:#0B3C5D;'>Datos Completos</h2>", unsafe_allow_html=True)
