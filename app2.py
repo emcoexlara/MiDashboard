@@ -49,14 +49,20 @@ def load_data():
         df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
     return df
 
-df = load_data()
-
-# --- FILTROS SIDEBAR ---
-st.sidebar.header("Filtros")
-fecha = st.sidebar.date_input("Fecha")
-destino_seleccion = st.sidebar.multiselect("Destino", df['DESTINO'].dropna().unique())
-contenido_seleccion = st.sidebar.multiselect("Contenido", df['CONTENIDO'].dropna().unique())
-
+@st.cache_data
+def load_data():
+    df = pd.read_excel("data/datos.xlsx")
+    # Normalizar nombres: quitar espacios, mayúsculas y acentos
+    df.columns = df.columns.str.strip().str.upper().str.replace(" ", "_").str.replace("Á","A").str.replace("É","E").str.replace("Í","I").str.replace("Ó","O").str.replace("Ú","U")
+    
+    # Asegurar que los campos de peso sean numéricos
+    for col in ["PESO_NETO_EXPORTADO", "PESO_NETO_IMPORTADO", "PESO_NETO_MANEJADO"]:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+        else:
+            df[col] = 0
+    return df
+  
 # --- FILTRADO DE DATOS ---
 df_filtrado = df.copy()
 if destino_seleccion:
