@@ -68,6 +68,29 @@ col3.markdown(f"<div style='background-color:{COLOR_CUADRO}; padding:15px; borde
                f"<h3>📥 Peso Neto Importado (t)</h3><h2>{df_filtrado['Peso Neto Importado'].sum():,.2f}</h2></div>", unsafe_allow_html=True)
 col4.markdown(f"<div style='background-color:{COLOR_CUADRO}; padding:15px; border-radius:10px; text-align:center; color:white;'>"
                f"<h3>⚖️ Peso Total (t)</h3><h2>{df_filtrado['Peso Neto Manejado'].sum():,.2f}</h2></div>", unsafe_allow_html=True)
+# ------------------------------
+# Imagen de fondo
+# ------------------------------
+def set_background_image(image_file):
+    with open(image_file, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode()
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-image: url("data:image/jpg;base64,{encoded}");
+            background-size: cover;
+            background-position: top center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+# Aplicar fondo
+set_background_image("assets/fondo_comercio.jpg")
 
 # --- GRÁFICOS ---
 st.subheader("Contenedores vs Toneladas")
