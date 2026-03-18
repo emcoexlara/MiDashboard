@@ -54,13 +54,14 @@ def cargar_datos(file=None):
     except:
         return pd.DataFrame()
     
-    df.columns = df.columns.str.strip()  # limpiar espacios
-    # Intentar convertir pesos si existen
-    for col in ["Peso Neto Manejado", "Peso Neto Exportado", "Peso Neto Importado"]:
+    df.columns = df.columns.str.strip()
+    
+    # Convertir pesos a numérico si existen
+    for col in ["Peso Neto Manejado", "Peso Neto Exportado", "Peso Neto Importado", "LLENOS RECIBIDOS (EXPORTADOS)"]:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
     
-    # Toneladas (solo si existen)
+    # Toneladas
     if "Peso Neto Exportado" in df.columns:
         df["peso neto exportado (t)"] = df["Peso Neto Exportado"] / 1000
     if "Peso Neto Importado" in df.columns:
@@ -78,10 +79,10 @@ archivo_excel = st.sidebar.file_uploader("Actualizar Excel", type=["xlsx"])
 df = cargar_datos(archivo_excel)
 
 if df.empty:
-    st.warning("No se pudo cargar el archivo Excel. Por favor verifica que tenga datos.")
+    st.warning("No se pudo cargar el archivo Excel o no contiene datos.")
 else:
     # ------------------------------
-    # FILTROS EN SIDEBAR
+    # FILTROS
     # ------------------------------
     st.sidebar.markdown("### Filtros")
     
@@ -109,12 +110,13 @@ else:
         df_filtrado = df_filtrado[df_filtrado['DESTINO'].isin(destino_seleccion)]
     if contenido_seleccion:
         df_filtrado = df_filtrado[df_filtrado['CONTENIDO'].isin(contenido_seleccion)]
-        # ------------------------------
+    
+    # ------------------------------
     # TÍTULO PRINCIPAL
     # ------------------------------
     st.markdown(
         """
-        <h1 style='text-align:center; color:black; border: 3px solid white; padding:15px; border-radius:12px;'>
+        <h1 style='text-align:center; color:black; border:3px solid white; padding:15px; border-radius:12px;'>
             Control Operacional Empresa de Comercio Exterior de Lara
         </h1>
         """,
@@ -122,32 +124,39 @@ else:
     )
     
     # ------------------------------
-    # MOSTRAR DATOS FILTRADOS
-    # ------------------------------
-    st.markdown("### Datos Filtrados")
-    st.dataframe(df_filtrado)
-    
-    # ------------------------------
-    # KPIs dinámicos (solo si existen)
+    # KPIs CON CUADROS DE COLOR
     # ------------------------------
     COLOR1 = "#1f77b4"
     COLOR2 = "#ff7f0e"
     COLOR3 = "#2ca02c"
     COLOR4 = "#d62728"
     
+    def kpi_cuadro(col, titulo, valor, color):
+        col.markdown(
+            f"""
+            <div style='background:{color};padding:20px;border-radius:12px;text-align:center;color:white;'>
+                <h4>{titulo}</h4>
+                <h2>{valor:,.2f}</h2>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    
     col1, col2, col3, col4 = st.columns(4)
     
-    if 'FECHA' in df_filtrado.columns:
-        col1.metric("Operaciones", len(df_filtrado))
-    if "peso neto exportado (t)" in df_filtrado.columns:
-        col2.metric("Peso Neto Exportado (t)", f"{df_filtrado['peso neto exportado (t)'].sum():,.2f}")
-    if "peso neto importado (t)" in df_filtrado.columns:
-        col3.metric("Peso Neto Importado (t)", f"{df_filtrado['peso neto importado (t)'].sum():,.2f}")
-    if "peso total (t)" in df_filtrado.columns:
-        col4.metric("Peso Total (t)", f"{df_filtrado['peso total (t)'].sum():,.2f}")
+    col1.metric("Operaciones", len(df_filtrado)) if 'FECHA' in df_filtrado.columns else None
+    kpi_cuadro(col2, "Peso Neto Exportado (t)", df_filtrado["peso neto exportado (t)"].sum(), COLOR2) if "peso neto exportado (t)" in df_filtrado.columns else None
+    kpi_cuadro(col3, "Peso Neto Importado (t)", df_filtrado["peso neto importado (t)"].sum(), COLOR3) if "peso neto importado (t)" in df_filtrado.columns else None
+    kpi_cuadro(col4, "Peso Total (t)", df_filtrado["peso total (t)"].sum(), COLOR4) if "peso total (t)" in df_filtrado.columns else None
     
     # ------------------------------
-    # Gráficas opcionales si existen columnas de peso
+    # DATOS FILTRADOS
+    # ------------------------------
+    st.markdown("### Datos Filtrados")
+    st.dataframe(df_filtrado)
+    
+    # ------------------------------
+    # GRÁFICAS DINÁMICAS
     # ------------------------------
     st.markdown("### Gráficas de Pesos")
     if "peso neto exportado (t)" in df_filtrado.columns:
@@ -156,3 +165,9 @@ else:
     if "peso neto importado (t)" in df_filtrado.columns:
         fig2 = px.histogram(df_filtrado, x="peso neto importado (t)")
         st.plotly_chart(fig2, use_container_width=True)
+    
+    # ------------------------------
+    # MAPA 3D
+    # ------------------------------
+    st.markdown("### Mapa 3D Destinos Exportados")
+    st.info("No se puede mostrar el mapa 3D porque las columnas de latitud y longitud no existen en el Excel.")
