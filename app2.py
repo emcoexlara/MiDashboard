@@ -20,7 +20,7 @@ st.set_page_config(
 )
 
 # ------------------------------
-# CARGAR LOGO Y FONDO
+# LOGO Y FONDO
 # ------------------------------
 logo_path = ASSETS_DIR / "logo.png"
 fondo_path = ASSETS_DIR / "fondo_comercio.jpg"
@@ -60,6 +60,8 @@ def cargar_datos(file=None):
     df["peso neto exportado (t)"] = df["peso neto exportado"] / 1000
     df["peso neto importado (t)"] = df["peso neto importado"] / 1000
     df["peso total (t)"] = (df["peso neto manejado"] + df["peso neto exportado"]) / 1000
+    if 'fecha' in df.columns:
+        df['fecha'] = pd.to_datetime(df['fecha'])
     return df
 
 archivo_excel = st.sidebar.file_uploader("Actualizar Excel", type=["xlsx"])
@@ -70,19 +72,28 @@ if df.empty:
     st.stop()
 
 # ------------------------------
-# FILTROS
+# FILTROS: FECHA, DESTINO, CONTENIDO
 # ------------------------------
 st.sidebar.markdown("### Filtros")
-fechas = pd.to_datetime(df['fecha']) if 'fecha' in df.columns else pd.to_datetime([])
-destinos = df['destino'].unique() if 'destino' in df.columns else []
-contenidos = df['contenido'].unique() if 'contenido' in df.columns else []
 
-fecha_seleccion = st.sidebar.date_input("Fecha", min_value=fechas.min() if not fechas.empty else None)
+# Fecha
+if 'fecha' in df.columns:
+    min_fecha, max_fecha = df['fecha'].min(), df['fecha'].max()
+    fecha_seleccion = st.sidebar.date_input("Fecha", value=min_fecha, min_value=min_fecha, max_value=max_fecha)
+else:
+    fecha_seleccion = None
+
+# Destino
+destinos = df['destino'].unique() if 'destino' in df.columns else []
 destino_seleccion = st.sidebar.selectbox("Destino", ['Todos'] + list(destinos))
+
+# Contenido
+contenidos = df['contenido'].unique() if 'contenido' in df.columns else []
 contenido_seleccion = st.sidebar.selectbox("Contenido", ['Todos'] + list(contenidos))
 
+# Aplicar filtros
 df_filtrado = df.copy()
-if not fechas.empty and fecha_seleccion:
+if fecha_seleccion and 'fecha' in df_filtrado.columns:
     df_filtrado = df_filtrado[df_filtrado['fecha'] == pd.to_datetime(fecha_seleccion)]
 if destino_seleccion != 'Todos':
     df_filtrado = df_filtrado[df_filtrado['destino'] == destino_seleccion]
@@ -108,7 +119,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
 # ------------------------------
 # KPIs
 # ------------------------------
@@ -122,14 +132,15 @@ def kpi_cuadro(col, titulo, valor, color):
         """,
         unsafe_allow_html=True
     )
-    col1, col2, col3, col4 = st.columns(4)
+
+col1, col2, col3, col4 = st.columns(4)
 kpi_cuadro(col1, "Operaciones", len(df_filtrado), COLOR1)
 kpi_cuadro(col2, "Peso Neto Exportado (t)", df_filtrado["peso neto exportado (t)"].sum(), COLOR2)
 kpi_cuadro(col3, "Peso Neto Importado (t)", df_filtrado["peso neto importado (t)"].sum(), COLOR3)
 kpi_cuadro(col4, "Peso Total (t)", df_filtrado["peso total (t)"].sum(), COLOR4)
 
 # ------------------------------
-# FUNCIONES PARA SECCIONES
+# SECCIONES
 # ------------------------------
 def seccion_titulo(titulo):
     st.markdown(
@@ -167,10 +178,13 @@ with tabs[2]:
 with tabs[3]:
     seccion_titulo("Mapa 3D Destinos Exportados")
     if 'latitud' in df_filtrado.columns and 'longitud' in df_filtrado.columns:
-        fig_map = px.scatter_3d(df_filtrado, x='longitud', y='latitud', z='peso total (t)',
-                                color='peso total (t)', size='peso total (t)',
-                                color_continuous_scale='Viridis',
-                                labels={'peso total (t)': 'Toneladas'})
+        fig_map = px.scatter_3d(
+            df_filtrado,
+            x='longitud', y='latitud', z='peso total (t)',
+            color='peso total (t)', size='peso total (t)',
+            color_continuous_scale='Viridis',
+            labels={'peso total (t)': 'Toneladas'}
+        )
         st.plotly_chart(fig_map, use_container_width=True)
     else:
         st.warning("Las columnas de latitud y longitud no existen en el Excel para el mapa 3D.")
