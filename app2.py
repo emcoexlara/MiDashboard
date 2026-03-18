@@ -113,22 +113,10 @@ if 'peso neto importado' in df.columns:
     min_val, max_val = df['peso neto importado'].min(), df['peso neto importado'].max()
     pni_seleccion = st.sidebar.slider("Peso Neto Importado (kg)", float(min_val), float(max_val), (float(min_val), float(max_val)))
 
-# Latitud
-lat_seleccion = (0,0)
-if 'latitud' in df.columns:
-    min_val, max_val = df['latitud'].min(), df['latitud'].max()
-    lat_seleccion = st.sidebar.slider("Latitud", float(min_val), float(max_val), (float(min_val), float(max_val)))
-    # Longitud
-lon_seleccion = (0,0)
-if 'longitud' in df.columns:
-    min_val, max_val = df['longitud'].min(), df['longitud'].max()
-    lon_seleccion = st.sidebar.slider("Longitud", float(min_val), float(max_val), (float(min_val), float(max_val)))
-
 # ------------------------------
 # APLICAR FILTROS
 # ------------------------------
 df_filtrado = df.copy()
-
 if fecha_seleccion and 'fecha' in df_filtrado.columns:
     df_filtrado = df_filtrado[df_filtrado['fecha'] == pd.to_datetime(fecha_seleccion)]
 if destino_seleccion:
@@ -149,16 +137,6 @@ if 'peso neto importado' in df_filtrado.columns:
     df_filtrado = df_filtrado[
         (df_filtrado['peso neto importado'] >= pni_seleccion[0]) &
         (df_filtrado['peso neto importado'] <= pni_seleccion[1])
-    ]
-if 'latitud' in df_filtrado.columns:
-    df_filtrado = df_filtrado[
-        (df_filtrado['latitud'] >= lat_seleccion[0]) &
-        (df_filtrado['latitud'] <= lat_seleccion[1])
-    ]
-if 'longitud' in df_filtrado.columns:
-    df_filtrado = df_filtrado[
-        (df_filtrado['longitud'] >= lon_seleccion[0]) &
-        (df_filtrado['longitud'] <= lon_seleccion[1])
     ]
 
 # ------------------------------
@@ -229,6 +207,7 @@ with tabs[1]:
     fig_imp = px.histogram(df_filtrado, x="peso neto importado (t)", nbins=30, color_discrete_sequence=[COLOR3])
     st.plotly_chart(fig_exp, use_container_width=True)
     st.plotly_chart(fig_imp, use_container_width=True)
+
 with tabs[2]:
     seccion_titulo("Países")
     if 'destino' in df_filtrado.columns:
@@ -238,17 +217,4 @@ with tabs[2]:
 
 with tabs[3]:
     seccion_titulo("Mapa 3D Destinos Exportados")
-    if 'latitud' in df_filtrado.columns and 'longitud' in df_filtrado.columns:
-        fig_map = px.scatter_3d(
-            df_filtrado,
-            x='longitud',
-            y='latitud',
-            z='peso total (t)',
-            color='peso total (t)',
-            size='peso total (t)',
-            color_continuous_scale='Viridis',
-            labels={'peso total (t)': 'Toneladas'}
-        )
-        st.plotly_chart(fig_map, use_container_width=True)
-    else:
-        st.warning("Las columnas de latitud y longitud no existen en el Excel para el mapa 3D.")
+    st.info("No se puede mostrar el mapa 3D porque las columnas de latitud y longitud no existen en el Excel.")
