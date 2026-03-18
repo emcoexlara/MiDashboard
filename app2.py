@@ -54,27 +54,23 @@ def cargar_datos(file=None):
     except:
         return pd.DataFrame()
     
-    df.columns = df.columns.str.strip().str.lower()
-    
-    # Verificar columnas esenciales
-    columnas_esperadas = ["fecha", "destino", "contenido", "peso neto manejado",
-                          "peso neto exportado", "peso neto importado"]
-    for col in columnas_esperadas:
-        if col not in df.columns:
-            df[col] = 0 if "peso" in col else ""
+    # Normalizar nombres de columnas (sin espacios al inicio/final)
+    df.columns = df.columns.str.strip()
     
     # Convertir pesos a numérico
-    for col in ["peso neto manejado", "peso neto exportado", "peso neto importado"]:
-        df[col] = pd.to_numeric(df.get(col, 0), errors="coerce").fillna(0)
+    for col in ["Peso Neto Manejado", "Peso Neto Exportado", "Peso Neto Importado", "LLENOS RECIBIDOS (EXPORTADOS)"]:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
     
     # Toneladas
-    df["peso neto exportado (t)"] = df["peso neto exportado"] / 1000
-    df["peso neto importado (t)"] = df["peso neto importado"] / 1000
-    df["peso total (t)"] = (df["peso neto manejado"] + df["peso neto exportado"]) / 1000
+    df["peso neto exportado (t)"] = df["Peso Neto Exportado"] / 1000 if "Peso Neto Exportado" in df.columns else 0
+    df["peso neto importado (t)"] = df["Peso Neto Importado"] / 1000 if "Peso Neto Importado" in df.columns else 0
+    df["peso total (t)"] = ((df["Peso Neto Manejado"] if "Peso Neto Manejado" in df.columns else 0) +
+                             (df["Peso Neto Exportado"] if "Peso Neto Exportado" in df.columns else 0)) / 1000
     
     # Fecha
-    if 'fecha' in df.columns:
-        df['fecha'] = pd.to_datetime(df['fecha'], errors='coerce')
+    if 'FECHA' in df.columns:
+        df['FECHA'] = pd.to_datetime(df['FECHA'], errors='coerce')
     
     return df
 
@@ -92,31 +88,31 @@ st.sidebar.markdown("### Filtros")
 
 # Fecha
 fecha_seleccion = None
-if 'fecha' in df.columns:
-    min_fecha, max_fecha = df['fecha'].min(), df['fecha'].max()
+if 'FECHA' in df.columns:
+    min_fecha, max_fecha = df['FECHA'].min(), df['FECHA'].max()
     fecha_seleccion = st.sidebar.date_input("Fecha", value=min_fecha, min_value=min_fecha, max_value=max_fecha)
 
 # Destino
-destinos = df['destino'].unique() if 'destino' in df.columns else []
+destinos = df['DESTINO'].unique() if 'DESTINO' in df.columns else []
 destino_seleccion = st.sidebar.multiselect("Destino", destinos, default=destinos)
 
 # Contenido
-contenidos = df['contenido'].unique() if 'contenido' in df.columns else []
+contenidos = df['CONTENIDO'].unique() if 'CONTENIDO' in df.columns else []
 contenido_seleccion = st.sidebar.multiselect("Contenido", contenidos, default=contenidos)
 
 # Pesos
 pnm_seleccion = (0,0)
-if 'peso neto manejado' in df.columns:
-    min_val, max_val = df['peso neto manejado'].min(), df['peso neto manejado'].max()
+if 'Peso Neto Manejado' in df.columns:
+    min_val, max_val = df['Peso Neto Manejado'].min(), df['Peso Neto Manejado'].max()
     pnm_seleccion = st.sidebar.slider("Peso Neto Manejado (kg)", float(min_val), float(max_val), (float(min_val), float(max_val)))
 
 pne_seleccion = (0,0)
-if 'peso neto exportado' in df.columns:
-    min_val, max_val = df['peso neto exportado'].min(), df['peso neto exportado'].max()
+if 'Peso Neto Exportado' in df.columns:
+    min_val, max_val = df['Peso Neto Exportado'].min(), df['Peso Neto Exportado'].max()
     pne_seleccion = st.sidebar.slider("Peso Neto Exportado (kg)", float(min_val), float(max_val), (float(min_val), float(max_val)))
     pni_seleccion = (0,0)
-if 'peso neto importado' in df.columns:
-    min_val, max_val = df['peso neto importado'].min(), df['peso neto importado'].max()
+if 'Peso Neto Importado' in df.columns:
+    min_val, max_val = df['Peso Neto Importado'].min(), df['Peso Neto Importado'].max()
     pni_seleccion = st.sidebar.slider("Peso Neto Importado (kg)", float(min_val), float(max_val), (float(min_val), float(max_val)))
 
 # ------------------------------
@@ -124,26 +120,26 @@ if 'peso neto importado' in df.columns:
 # ------------------------------
 df_filtrado = df.copy()
 
-if fecha_seleccion and 'fecha' in df_filtrado.columns:
-    df_filtrado = df_filtrado[df_filtrado['fecha'] == pd.to_datetime(fecha_seleccion)]
+if fecha_seleccion and 'FECHA' in df_filtrado.columns:
+    df_filtrado = df_filtrado[df_filtrado['FECHA'] == pd.to_datetime(fecha_seleccion)]
 if destino_seleccion:
-    df_filtrado = df_filtrado[df_filtrado['destino'].isin(destino_seleccion)]
+    df_filtrado = df_filtrado[df_filtrado['DESTINO'].isin(destino_seleccion)]
 if contenido_seleccion:
-    df_filtrado = df_filtrado[df_filtrado['contenido'].isin(contenido_seleccion)]
-if 'peso neto manejado' in df_filtrado.columns:
+    df_filtrado = df_filtrado[df_filtrado['CONTENIDO'].isin(contenido_seleccion)]
+if 'Peso Neto Manejado' in df_filtrado.columns:
     df_filtrado = df_filtrado[
-        (df_filtrado['peso neto manejado'] >= pnm_seleccion[0]) &
-        (df_filtrado['peso neto manejado'] <= pnm_seleccion[1])
+        (df_filtrado['Peso Neto Manejado'] >= pnm_seleccion[0]) &
+        (df_filtrado['Peso Neto Manejado'] <= pnm_seleccion[1])
     ]
-if 'peso neto exportado' in df_filtrado.columns:
+if 'Peso Neto Exportado' in df_filtrado.columns:
     df_filtrado = df_filtrado[
-        (df_filtrado['peso neto exportado'] >= pne_seleccion[0]) &
-        (df_filtrado['peso neto exportado'] <= pne_seleccion[1])
+        (df_filtrado['Peso Neto Exportado'] >= pne_seleccion[0]) &
+        (df_filtrado['Peso Neto Exportado'] <= pne_seleccion[1])
     ]
-if 'peso neto importado' in df_filtrado.columns:
+if 'Peso Neto Importado' in df_filtrado.columns:
     df_filtrado = df_filtrado[
-        (df_filtrado['peso neto importado'] >= pni_seleccion[0]) &
-        (df_filtrado['peso neto importado'] <= pni_seleccion[1])
+        (df_filtrado['Peso Neto Importado'] >= pni_seleccion[0]) &
+        (df_filtrado['Peso Neto Importado'] <= pni_seleccion[1])
     ]
 
 # ------------------------------
@@ -217,9 +213,9 @@ with tabs[1]:
 
 with tabs[2]:
     seccion_titulo("Países")
-    if 'destino' in df_filtrado.columns:
-        df_p = df_filtrado.groupby("destino")[["peso total (t)"]].sum().reset_index()
-        fig_p = px.bar(df_p, x="destino", y="peso total (t)", color_discrete_sequence=[COLOR1])
+    if 'DESTINO' in df_filtrado.columns:
+        df_p = df_filtrado.groupby("DESTINO")[["peso total (t)"]].sum().reset_index()
+        fig_p = px.bar(df_p, x="DESTINO", y="peso total (t)", color_discrete_sequence=[COLOR1])
         st.plotly_chart(fig_p, use_container_width=True)
 with tabs[3]:
     seccion_titulo("Mapa 3D Destinos Exportados")
