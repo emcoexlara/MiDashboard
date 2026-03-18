@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import base64
 import os
+import base64
 
 # ===== CONFIGURACIÓN DE PÁGINA =====
 st.set_page_config(page_title="Dashboard Comercio Exterior", layout="wide")
@@ -11,7 +11,7 @@ st.set_page_config(page_title="Dashboard Comercio Exterior", layout="wide")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(BASE_DIR, "assets")
 DATA_DIR = os.path.join(BASE_DIR, "data")
-DATA_PATH = os.path.join(DATA_DIR, "datos.xlsx")  # asegúrate del nombre exacto
+DATA_PATH = os.path.join(DATA_DIR, "datos.xlsx")  # Asegúrate del nombre exacto
 
 # ===== FUNCIONES =====
 def get_base64(file_path):
@@ -35,7 +35,6 @@ def set_background(png_file):
 # ===== FONDO Y LOGO =====
 fondo_path = os.path.join(ASSETS_DIR, "fondo_comercio.jpg")
 logo_path = os.path.join(ASSETS_DIR, "logo_empresa.png")
-
 if os.path.exists(fondo_path):
     set_background(fondo_path)
 if os.path.exists(logo_path):
@@ -53,11 +52,22 @@ Control Operacional de Comercio Exterior de Lara
 def load_data():
     try:
         df = pd.read_excel(DATA_PATH)
+        # Homogeneizar nombres
         df.columns = [c.strip().upper() for c in df.columns]
-        for col in ["PESO NETO EXPORTADO", "PESO NETO IMPORTADO"]:
+        
+        # Convertir columnas numéricas
+        numeric_cols = ["PESO NETO EXPORTADO", "PESO NETO IMPORTADO", "PESO NETO MANEJADO"]
+        for col in numeric_cols:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-        df["PESO TOTAL"] = df.get("PESO NETO EXPORTADO", 0) + df.get("PESO NETO IMPORTADO", 0)
+        
+        # Crear columna de peso total
+        df["PESO TOTAL"] = df.get("PESO NETO EXPORTADO",0) + df.get("PESO NETO IMPORTADO",0)
+        
+        # Convertir FECHA a datetime
+        if "FECHA" in df.columns:
+            df["FECHA"] = pd.to_datetime(df["FECHA"], errors='coerce')
+        
         return df
     except Exception as e:
         st.error(f"No se pudo cargar el archivo Excel: {e}")
@@ -100,7 +110,6 @@ kpi_col2.markdown(f"""
 <h2>{df_filtrado['PESO NETO EXPORTADO'].sum():,.2f} t</h2>
 </div>
 """, unsafe_allow_html=True)
-
 kpi_col3.markdown(f"""
 <div style="background-color:white; padding:15px; border-radius:10px; text-align:center;">
 <img src="https://img.icons8.com/ios-filled/50/000000/import.png"/>
@@ -108,6 +117,7 @@ kpi_col3.markdown(f"""
 <h2>{df_filtrado['PESO NETO IMPORTADO'].sum():,.2f} t</h2>
 </div>
 """, unsafe_allow_html=True)
+
 kpi_col4.markdown(f"""
 <div style="background-color:white; padding:15px; border-radius:10px; text-align:center;">
 <img src="https://img.icons8.com/ios-filled/50/000000/weight.png"/>
