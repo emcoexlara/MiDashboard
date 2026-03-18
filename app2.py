@@ -12,7 +12,7 @@ st.set_page_config(layout="wide", page_title="Dashboard Ejecutivo")
 # ------------------------------
 # RUTAS DE ARCHIVOS
 # ------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(file))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def get_base64(file):
     with open(file, "rb") as f:
