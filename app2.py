@@ -62,7 +62,25 @@ if destino_seleccion:
     df_filtrado = df_filtrado[df_filtrado['DESTINO'].isin(destino_seleccion)]
 if contenido_seleccion:
     df_filtrado = df_filtrado[df_filtrado['CONTENIDO'].isin(contenido_seleccion)]
+df_filtrado = df.copy()  # o el df filtrado según tus multiselect
+import plotly.express as px
 
+st.markdown(f"<h2 style='color:{COLOR_TITULO}; text-align:center;'>Mapa de Exportaciones por País</h2>", unsafe_allow_html=True)
+
+df_map = df_filtrado.groupby('DESTINO', as_index=False)['Peso Neto Exportado'].sum()
+
+fig_map = px.scatter_geo(
+    df_map,
+    locations="DESTINO",
+    locationmode="country names",
+    size="Peso Neto Exportado",
+    hover_name="DESTINO",
+    hover_data={"Peso Neto Exportado": True},
+    projection="natural earth",
+    color_discrete_sequence=[COLOR_PRINCIPAL]
+)
+
+st.plotly_chart(fig_map, use_container_width=True)
 # --- KPIs CON ICONOS ---
 st.markdown(
     f"<h1 style='color:{COLOR_CUADRO}; text-align:center;'>Control Operacional de Comercio Exterior de Lara</h1>",
