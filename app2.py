@@ -3,77 +3,60 @@ from pathlib import Path
 import base64
 
 # ------------------------------
-# FUNCIÓN PARA CARGAR IMÁGENES
+# UBICACIÓN REAL DEL PROYECTO
+# ------------------------------
+BASE_DIR = Path(file).resolve().parent
+ASSETS = BASE_DIR / "assets"
+
+st.write("BASE_DIR:", BASE_DIR)
+st.write("ASSETS:", ASSETS)
+
+# ------------------------------
+# VALIDACIÓN
+# ------------------------------
+if not ASSETS.exists():
+    st.error(f"No se encontró la carpeta assets en: {ASSETS}")
+    st.stop()
+
+# ------------------------------
+# FUNCIÓN BASE64
 # ------------------------------
 def cargar_base64(ruta):
     try:
-        with open(ruta, "rb") as archivo:
-            return base64.b64encode(archivo.read()).decode()
+        with open(ruta, "rb") as f:
+            return base64.b64encode(f.read()).decode()
     except Exception as e:
         st.error(f"Error cargando imagen: {e}")
         return None
 
 # ------------------------------
-# DETECTAR CARPETA ASSETS
-# ------------------------------
-def obtener_assets():
-    rutas = [
-        Path.cwd() / "assets",
-        Path().absolute() / "assets",
-    ]
-    for r in rutas:
-        if r.exists():
-            return r
-    return None
-
-ASSETS = obtener_assets()
-
-if ASSETS is None:
-    st.error("❌ No se encontró la carpeta 'assets'")
-    st.stop()
-
-# ------------------------------
-# BUSCAR IMÁGENES AUTOMÁTICAMENTE
-# ------------------------------
-def buscar_archivo(nombre):
-    extensiones = [".png", ".jpg", ".jpeg"]
-    for ext in extensiones:
-        ruta = ASSETS / f"{nombre}{ext}"
-        if ruta.exists():
-            return ruta
-    return None
-
-# ------------------------------
 # FONDO
 # ------------------------------
-ruta_fondo = buscar_archivo("fondo_comercio")
+ruta_fondo = ASSETS / "fondo_comercio.jpg"
 
-if ruta_fondo:
-    fondo_base64 = cargar_base64(ruta_fondo)
+if ruta_fondo.exists():
+    fondo = cargar_base64(ruta_fondo)
     st.markdown(f"""
     <style>
     .stApp {{
-        background-image: url("data:image/jpg;base64,{fondo_base64}");
+        background-image: url("data:image/jpg;base64,{fondo}");
         background-size: cover;
         background-position: center;
-        background-repeat: no-repeat;
     }}
     </style>
     """, unsafe_allow_html=True)
 else:
-    st.warning("⚠️ No se encontró 'fondo_comercio' en assets")
+    st.error(f"No se encontró fondo en: {ruta_fondo}")
 
 # ------------------------------
 # LOGO
 # ------------------------------
-ruta_logo = buscar_archivo("logo_empresa")
+ruta_logo = ASSETS / "logo_empresa.png"
 
-if ruta_logo:
-    logo_base64 = cargar_base64(ruta_logo)
+if ruta_logo.exists():
+    logo = cargar_base64(ruta_logo)
     st.sidebar.markdown(f"""
-    <div style="text-align:center;">
-        <img src="data:image/png;base64,{logo_base64}" width="150">
-    </div>
+    <img src="data:image/png;base64,{logo}" width="150">
     """, unsafe_allow_html=True)
 else:
-    st.warning("⚠️ No se encontró 'logo_empresa' en assets")
+    st.error(f"No se encontró logo en: {ruta_logo}")
