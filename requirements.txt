@@ -3,3 +3,4 @@ pandas
 plotly
 openpyxl
 Pillow
+geopy==2.3.0
