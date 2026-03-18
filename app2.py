@@ -135,7 +135,6 @@ if 'CONTENIDO' in df.columns:
 def tarjeta(title, valor, clase):
     st.markdown(f'<div class="card {clase}"><h4>{title}</h4><h2>{valor:,.2f}</h2></div>', unsafe_allow_html=True)
 
-st.markdown('<div class="bloque"><h3>Resumen Ejecutivo</h3></div>', unsafe_allow_html=True)
 col1, col2, col3, col4 = st.columns(4)
 with col1: tarjeta("Operaciones", len(df_filtrado), "card1")
 with col2: tarjeta("Exportado (t)", df_filtrado['PESO NETO EXPORTADO'].sum(), "card2")
@@ -155,9 +154,3 @@ if 'FECHA' in df_filtrado.columns:
     tendencia = df_filtrado.groupby('FECHA')['PESO NETO EXPORTADO'].sum().reset_index()
     fig2 = px.line(tendencia, x='FECHA', y='PESO NETO EXPORTADO', markers=True, line_shape='spline')
     st.plotly_chart(fig2, use_container_width=True)
-
-# ------------------------------
-# TABLA DE DATOS
-# ------------------------------
-st.markdown('<div class="bloque"><h3>Tabla de Operaciones</h3></div>', unsafe_allow_html=True)
-st.dataframe(df_filtrado)
