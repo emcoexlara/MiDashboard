@@ -2,199 +2,173 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from pathlib import Path
+from PIL import Image
 import base64
-import os
 
 # ------------------------------
-# CONFIGURACIÓN
+# CONFIGURACIÓN DE PÁGINA
 # ------------------------------
-st.set_page_config(layout="wide")
+BASE_DIR = Path(__file__).parent
+DATA_DIR = BASE_DIR / "data"
+DATA_FILE = DATA_DIR / "datos.xlsx"
 
-BASE_DIR = Path(__file__).resolve().parent
-ASSETS = BASE_DIR / "assets"
-DATA_FILE = BASE_DIR / "datos.xlsx"
+st.set_page_config(
+    page_title="Control Operacional Empresa de Comercio Exterior de Lara",
+    layout="wide",
+    initial_sidebar_state="collapsed"  # Cierra sidebar inicial
+)
 
-# Colores corporativos
+# ------------------------------
+# CARGAR IMÁGENES
+# ------------------------------
+ASSETS_DIR = BASE_DIR / "assets"
+logo_path = ASSETS_DIR / "logo.png"
+fondo_path = ASSETS_DIR / "fondo_comercio.jpg"
+
+# Mostrar logo
+if logo_path.exists():
+    st.sidebar.image(logo_path, width=150)
+
+# Fondo como base64 para Streamlit
+def set_fondo(path):
+    with open(path, "rb") as f:
+        data = f.read()
+    b64 = base64.b64encode(data).decode()
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-image: url("data:image/png;base64,{b64}");
+            background-size: cover;
+            background-position: center;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+if fondo_path.exists():
+    set_fondo(fondo_path)
+
+# ------------------------------
+# CARGA DE DATOS
+# ------------------------------
+@st.cache_data
+def cargar_datos(file=None):
+    archivo = file if file else DATA_FILE
+    try:
+        df = pd.read_excel(archivo)
+    except:
+        return pd.DataFrame()
+    
+    df.columns = df.columns.str.strip().str.lower()
+    for col in ["peso neto manejado", "peso neto exportado", "peso neto importado"]:
+        df[col] = pd.to_numeric(df.get(col, 0), errors="coerce").fillna(0)
+    
+    # Calcular toneladas
+    df["peso neto exportado (t)"] = df["peso neto exportado"] / 1000
+    df["peso neto importado (t)"] = df["peso neto importado"] / 1000
+    df["peso total (t)"] = (df["peso neto manejado"] + df["peso neto exportado"]) / 1000
+    return df
+
+archivo_excel = st.sidebar.file_uploader("Actualizar Excel", type=["xlsx"])
+df = cargar_datos(archivo_excel)
+
+if df.empty:
+    st.error("El archivo Excel no contiene datos válidos o las columnas necesarias.")
+    st.stop()
+
+# ------------------------------
+# FILTROS
+# ------------------------------
+meses = df['mes'].unique() if 'mes' in df.columns else []
+años = df['año'].unique() if 'año' in df.columns else []
+rubros = df['rubro'].unique() if 'rubro' in df.columns else []
+
+st.sidebar.markdown("### Filtros")
+mes_seleccion = st.sidebar.selectbox("Mes", ['Todos'] + list(sorted(meses)))
+año_seleccion = st.sidebar.selectbox("Año", ['Todos'] + list(sorted(años)))
+rubro_seleccion = st.sidebar.selectbox("Rubro", ['Todos'] + list(sorted(rubros)))
+
+df_filtrado = df.copy()
+if mes_seleccion != "Todos":
+    df_filtrado = df_filtrado[df_filtrado['mes'] == mes_seleccion]
+if año_seleccion != "Todos":
+    df_filtrado = df_filtrado[df_filtrado['año'] == año_seleccion]
+if rubro_seleccion != "Todos":
+    df_filtrado = df_filtrado[df_filtrado['rubro'] == rubro_seleccion]
+
+# ------------------------------
+# COLORES CORPORATIVOS
+# ------------------------------
 COLOR1 = "#1f77b4"
 COLOR2 = "#ff7f0e"
 COLOR3 = "#2ca02c"
 COLOR4 = "#d62728"
 
 # ------------------------------
-# FUNCIONES
-# ------------------------------
-def cargar_base64(file):
-    return base64.b64encode(file.read()).decode()
-
-def cargar_base64_ruta(ruta):
-    try:
-        with open(ruta, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-    except:
-        return None
-
-# ------------------------------
-# DIAGNÓSTICO (IMPORTANTE)
-# ------------------------------
-st.sidebar.markdown("### 🔍 Diagnóstico")
-st.sidebar.write("Ruta actual:", BASE_DIR)
-
-if ASSETS.exists():
-    st.sidebar.success("Carpeta assets detectada")
-    st.sidebar.write(os.listdir(ASSETS))
-else:
-    st.sidebar.error("No existe carpeta assets")
-
-# ------------------------------
-# CARGA DE IMÁGENES (DOBLE MÉTODO)
-# ------------------------------
-fondo = None
-logo = None
-
-# MÉTODO 1: desde carpeta assets
-if ASSETS.exists():
-    ruta_fondo = ASSETS / "fondo_comercio.jpg"
-    ruta_logo = ASSETS / "logo_empresa.png"
-
-    if ruta_fondo.exists():
-        fondo = cargar_base64_ruta(ruta_fondo)
-
-    if ruta_logo.exists():
-        logo = cargar_base64_ruta(ruta_logo)
-
-# MÉTODO 2: carga manual si falla
-if not fondo:
-    fondo_file = st.sidebar.file_uploader("Subir fondo", type=["jpg","png","jpeg"])
-    if fondo_file:
-        fondo = cargar_base64(fondo_file)
-
-if not logo:
-    logo_file = st.sidebar.file_uploader("Subir logo", type=["jpg","png","jpeg"])
-    if logo_file:
-        logo = cargar_base64(logo_file)
-
-# ------------------------------
-# APLICAR FONDO
-# ------------------------------
-if fondo:
-    st.markdown(f"""
-    <style>
-    .stApp {{
-        background-image: url("data:image/jpg;base64,{fondo}");
-        background-size: cover;
-        background-position: center;
-    }}
-    </style>
-    """, unsafe_allow_html=True)
-else:
-    st.warning("⚠️ Sin fondo")
-
-# ------------------------------
-# MOSTRAR LOGO
-# ------------------------------
-if logo:
-    st.sidebar.markdown(f"""
-    <div style="text-align:center;">
-        <img src="data:image/png;base64,{logo}" width="150">
-    </div>
-    """, unsafe_allow_html=True)
-else:
-    st.sidebar.warning("⚠️ Sin logo")
-
-# ------------------------------
-# TÍTULO
+# TÍTULO PRINCIPAL
 # ------------------------------
 st.markdown(
-    "<h1 style='text-align:center; color:#1f77b4;'>Control Operacional Empresa de Comercio Exterior de Lara</h1>",
+    """
+    <h1 style='text-align:center; color:black; border: 3px solid white; padding:15px; border-radius:12px;'>
+        Control Operacional Empresa de Comercio Exterior de Lara
+    </h1>
+    """,
     unsafe_allow_html=True
 )
 
 # ------------------------------
-# CARGA DE DATOS
+# KPIs
 # ------------------------------
-@st.cache_data
-def cargar_datos(archivo=None):
-    if archivo:
-        df = pd.read_excel(archivo)
-    else:
-        df = pd.read_excel(DATA_FILE)
-
-    df.columns = df.columns.str.strip().str.lower()
-
-    columnas = ["peso neto manejado", "peso neto exportado", "peso neto importado"]
-
-    for col in columnas:
-        if col not in df.columns:
-            st.error(f"Falta columna: {col}")
-            return pd.DataFrame()
-        df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
-
-    df["peso neto exportado (t)"] = df["peso neto exportado"] / 1000
-    df["peso neto importado (t)"] = df["peso neto importado"] / 1000
-    df["peso total (t)"] = (df["peso neto manejado"] + df["peso neto exportado"]) / 1000
-
-    return df
-
-# ------------------------------
-# SUBIR EXCEL
-# ------------------------------
-archivo_excel = st.sidebar.file_uploader("Actualizar Excel", type=["xlsx"])
-df = cargar_datos(archivo_excel)
-
-if df.empty:
-    st.stop()
-
-# ------------------------------
-# TABS
-# ------------------------------
-tabs = st.tabs(["Resumen Ejecutivo", "Operaciones", "Países", "Datos"])
-# ------------------------------
-# KPI
-# ------------------------------
-def kpi(col, titulo, valor, color):
-    col.markdown(f"""
-    <div style="background:{color};padding:20px;border-radius:12px;text-align:center;color:white;">
-        <h4>{titulo}</h4>
-        <h2>{valor:,.2f}</h2>
-    </div>
-    """, unsafe_allow_html=True)
-
-# ------------------------------
-# RESUMEN
-# ------------------------------
-with tabs[0]:
-    st.markdown("## 📊 Resumen Ejecutivo")
-
+def kpi_cuadro(col, titulo, valor, color):
+    col.markdown(
+        f"""
+        <div style='background:{color};padding:20px;border-radius:12px;text-align:center;color:white;'>
+            <h4>{titulo}</h4>
+            <h2>{valor:,.2f}</h2>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
     col1, col2, col3, col4 = st.columns(4)
-
-    kpi(col1, "Operaciones", len(df), COLOR1)
-    kpi(col2, "Exportado (t)", df["peso neto exportado (t)"].sum(), COLOR2)
-    kpi(col3, "Importado (t)", df["peso neto importado (t)"].sum(), COLOR3)
-    kpi(col4, "Total (t)", df["peso total (t)"].sum(), COLOR4)
+kpi_cuadro(col1, "Operaciones", len(df_filtrado), COLOR1)
+kpi_cuadro(col2, "Peso Neto Exportado (t)", df_filtrado["peso neto exportado (t)"].sum(), COLOR2)
+kpi_cuadro(col3, "Peso Neto Importado (t)", df_filtrado["peso neto importado (t)"].sum(), COLOR3)
+kpi_cuadro(col4, "Peso Total (t)", df_filtrado["peso total (t)"].sum(), COLOR4)
 
 # ------------------------------
-# OPERACIONES
+# FUNCIONES PARA SECCIONES
 # ------------------------------
+def seccion_titulo(titulo):
+    st.markdown(
+        f"""
+        <div style='background-color:white; padding:10px; border-radius:10px; margin-bottom:10px;'>
+            <h2 style='color:#1f77b4'>{titulo}</h2>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+# ------------------------------
+# TABS Y GRÁFICAS
+# ------------------------------
+tabs = st.tabs(["Resumen Ejecutivo", "Operaciones", "Países"])
+
+with tabs[0]:
+    seccion_titulo("Resumen Ejecutivo")
+    st.write("Indicadores resumidos según los filtros seleccionados.")
+
 with tabs[1]:
-    st.markdown("## 📈 Operaciones")
+    seccion_titulo("Operaciones")
+    fig_exp = px.histogram(df_filtrado, x="peso neto exportado (t)", nbins=30, color_discrete_sequence=[COLOR2])
+    fig_imp = px.histogram(df_filtrado, x="peso neto importado (t)", nbins=30, color_discrete_sequence=[COLOR3])
+    st.plotly_chart(fig_exp, use_container_width=True)
+    st.plotly_chart(fig_imp, use_container_width=True)
 
-    st.plotly_chart(px.histogram(df, x="peso neto exportado (t)", nbins=30, color_discrete_sequence=[COLOR1]), use_container_width=True)
-    st.plotly_chart(px.histogram(df, x="peso neto importado (t)", nbins=30, color_discrete_sequence=[COLOR2]), use_container_width=True)
-
-# ------------------------------
-# PAÍSES
-# ------------------------------
 with tabs[2]:
-    st.markdown("## 🌍 Países")
-
-    df_paises = df.groupby("destino")[["peso total (t)"]].sum().reset_index()
-
-    st.plotly_chart(px.bar(df_paises, x="destino", y="peso total (t)", color_discrete_sequence=[COLOR1]), use_container_width=True)
-
-# ------------------------------
-# DATOS
-# ------------------------------
-with tabs[3]:
-    st.markdown("## 📋 Datos")
-
-    st.dataframe(df, use_container_width=True)
+    seccion_titulo("Países")
+    if 'destino' in df_filtrado.columns:
+        df_p = df_filtrado.groupby("destino")[["peso total (t)"]].sum().reset_index()
+        fig_p = px.bar(df_p, x="destino", y="peso total (t)", color_discrete_sequence=[COLOR1])
+        st.plotly_chart(fig_p, use_container_width=True)
