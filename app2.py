@@ -7,7 +7,7 @@ import os
 # ------------------------------
 # CONFIGURACIÓN DE STREAMLIT
 # ------------------------------
-st.set_page_config(layout="wide", page_title="Dashboard Ejecutivo")
+st.set_page_config(layout="wide", page_title="Control Operacional Empresa de Comercio Exterior de Lara")
 
 # ------------------------------
 # RUTAS Y VALIDACIÓN DE ARCHIVOS
@@ -16,7 +16,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 fondo_path = os.path.join(BASE_DIR, "assets", "fondo_comercio.jpg")
 logo_path = os.path.join(BASE_DIR, "assets", "logo_empresa.png")
-excel_path = os.path.join(BASE_DIR, "data", "datos.xlsx")  # Archivo correcto
+excel_path = os.path.join(BASE_DIR, "data", "datos.xlsx")  # Asegúrate del nombre correcto
 
 def get_base64_safe(file_path):
     if not os.path.exists(file_path):
@@ -154,3 +154,27 @@ if 'FECHA' in df_filtrado.columns:
     tendencia = df_filtrado.groupby('FECHA')['PESO NETO EXPORTADO'].sum().reset_index()
     fig2 = px.line(tendencia, x='FECHA', y='PESO NETO EXPORTADO', markers=True, line_shape='spline')
     st.plotly_chart(fig2, use_container_width=True)
+
+# ------------------------------
+# MAPA 3D DE DESTINOS
+# ------------------------------
+if 'DESTINO' in df_filtrado.columns:
+    # Generar lat/lon ficticia si no existen
+    if 'LATITUD' not in df_filtrado.columns or 'LONGITUD' not in df_filtrado.columns:
+        # Puedes reemplazar con tus coordenadas reales por destino
+        import random
+        destino_coords = {}
+        for d in df_filtrado['DESTINO'].unique():
+            destino_coords[d] = {'LAT': random.uniform(-10,10), 'LON': random.uniform(-70,-60)}
+        df_filtrado['LATITUD'] = df_filtrado['DESTINO'].apply(lambda x: destino_coords[x]['LAT'])
+        df_filtrado['LONGITUD'] = df_filtrado['DESTINO'].apply(lambda x: destino_coords[x]['LON'])
+
+    st.markdown('<div class="bloque"><h3>Mapa de Destinos Exportados (3D)</h3></div>', unsafe_allow_html=True)
+    fig_map = px.scatter_3d(df_filtrado, x='LONGITUD', y='LATITUD', z='PESO NETO EXPORTADO', color='DESTINO',
+                            size='PESO NETO EXPORTADO', hover_name='DESTINO')
+    fig_map.update_layout(scene=dict(
+        xaxis_title='Longitud',
+        yaxis_title='Latitud',
+        zaxis_title='Peso Exportado (t)'
+    ))
+    st.plotly_chart(fig_map, use_container_width=True)
