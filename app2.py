@@ -25,18 +25,7 @@ def get_base64(file_path):
 fondo_path = "assets/fondo_comercio.jpg"
 logo_path = "assets/logo_empresa.png"
 
-st.markdown(
-    f"""
-    <style>
-    .stApp {{
-        background-image: url("data:image/jpg;base64,{get_base64(fondo_path)}");
-        background-size: cover;
-        background-attachment: fixed;
-    }}
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# st.markdown(f"<h2 style='color:{COLOR_TITULO}; text-align:center;'>Mapa 3D de Exportaciones</h2>", unsafe_allow_html=True)
 
 st.image(logo_path, width=150)
 
