@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 from pathlib import Path
 import base64
 
 # ------------------------------
-# CONFIGURACIÓN DE PÁGINA
+# CONFIGURACIÓN
 # ------------------------------
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
@@ -56,8 +57,8 @@ def cargar_datos(file=None):
     
     df.columns = df.columns.str.strip()
     
-    # Convertir pesos a numérico si existen
-    for col in ["Peso Neto Manejado", "Peso Neto Exportado", "Peso Neto Importado", "LLENOS RECIBIDOS (EXPORTADOS)"]:
+    # Convertir pesos a numérico
+    for col in ["Peso Neto Manejado", "Peso Neto Exportado", "Peso Neto Importado"]:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
     
@@ -111,8 +112,7 @@ else:
     if contenido_seleccion:
         df_filtrado = df_filtrado[df_filtrado['CONTENIDO'].isin(contenido_seleccion)]
     
-    # ------------------------------
-    # TÍTULO PRINCIPAL
+    # ------------------------------# TÍTULO PRINCIPAL
     # ------------------------------
     st.markdown(
         """
@@ -124,50 +124,62 @@ else:
     )
     
     # ------------------------------
-    # KPIs CON CUADROS DE COLOR
+    # KPIs
     # ------------------------------
     COLOR1 = "#1f77b4"
     COLOR2 = "#ff7f0e"
     COLOR3 = "#2ca02c"
     COLOR4 = "#d62728"
     
-    def kpi_cuadro(col, titulo, valor, color):
-        col.markdown(
-            f"""
-            <div style='background:{color};padding:20px;border-radius:12px;text-align:center;color:white;'>
-                <h4>{titulo}</h4>
-                <h2>{valor:,.2f}</h2>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    
     col1, col2, col3, col4 = st.columns(4)
     
     col1.metric("Operaciones", len(df_filtrado)) if 'FECHA' in df_filtrado.columns else None
-    kpi_cuadro(col2, "Peso Neto Exportado (t)", df_filtrado["peso neto exportado (t)"].sum(), COLOR2) if "peso neto exportado (t)" in df_filtrado.columns else None
-    kpi_cuadro(col3, "Peso Neto Importado (t)", df_filtrado["peso neto importado (t)"].sum(), COLOR3) if "peso neto importado (t)" in df_filtrado.columns else None
-    kpi_cuadro(col4, "Peso Total (t)", df_filtrado["peso total (t)"].sum(), COLOR4) if "peso total (t)" in df_filtrado.columns else None
+    col2.metric("Peso Neto Exportado (t)", f"{df_filtrado['peso neto exportado (t)'].sum():,.2f}") if "peso neto exportado (t)" in df_filtrado.columns else None
+    col3.metric("Peso Neto Importado (t)", f"{df_filtrado['peso neto importado (t)'].sum():,.2f}") if "peso neto importado (t)" in df_filtrado.columns else None
+    col4.metric("Peso Total (t)", f"{df_filtrado['peso total (t)'].sum():,.2f}") if "peso total (t)" in df_filtrado.columns else None
     
     # ------------------------------
-    # DATOS FILTRADOS
-    # ------------------------------
-    st.markdown("### Datos Filtrados")
-    st.dataframe(df_filtrado)
-    
-    # ------------------------------
-    # GRÁFICAS DINÁMICAS
+    # GRÁFICAS
     # ------------------------------
     st.markdown("### Gráficas de Pesos")
     if "peso neto exportado (t)" in df_filtrado.columns:
-        fig = px.histogram(df_filtrado, x="peso neto exportado (t)")
+        fig = px.histogram(df_filtrado, x="peso neto exportado (t)", color="DESTINO", title="Peso Neto Exportado por Destino")
         st.plotly_chart(fig, use_container_width=True)
     if "peso neto importado (t)" in df_filtrado.columns:
-        fig2 = px.histogram(df_filtrado, x="peso neto importado (t)")
+        fig2 = px.histogram(df_filtrado, x="peso neto importado (t)", color="DESTINO", title="Peso Neto Importado por Destino")
         st.plotly_chart(fig2, use_container_width=True)
     
     # ------------------------------
-    # MAPA 3D
+    # MAPA 3D DESTINOS
     # ------------------------------
     st.markdown("### Mapa 3D Destinos Exportados")
-    st.info("No se puede mostrar el mapa 3D porque las columnas de latitud y longitud no existen en el Excel.")
+    
+    # Diccionario de lat/lon aproximados de países más frecuentes
+    lat_lon = {
+        "Venezuela": (6.4238, -66.5897),
+        "Brasil": (-14.2350, -51.9253),
+        "Colombia": (4.5709, -74.2973),
+        "Estados Unidos": (37.0902, -95.7129),
+        "México": (23.6345, -102.5528),
+        # Agrega más destinos según sea necesario
+    }
+    
+    if 'DESTINO' in df_filtrado.columns:
+        df_map = df_filtrado.copy()
+        df_map["latitud"] = df_map["DESTINO"].map(lambda x: lat_lon.get(x, 0))
+        df_map["longitud"] = df_map["DESTINO"].map(lambda x: lat_lon.get(x, 0))
+        df_map = df_map[df_map["latitud"] != 0]  # eliminar destinos sin coordenadas
+        
+        if not df_map.empty:
+            fig_map = px.scatter_geo(
+                df_map,
+                lat="latitud",
+                lon="longitud",
+                hover_name="DESTINO",
+                size="peso neto exportado (t)" if "peso neto exportado (t)" in df_map.columns else None,
+                projection="natural earth",
+                title="Destinos de Exportación"
+            )
+            st.plotly_chart(fig_map, use_container_width=True)
+        else:
+            st.info("No hay coordenadas válidas para los destinos en el mapa 3D.")
