@@ -5,14 +5,14 @@ import base64
 import os
 
 # ------------------------------
-# CONFIGURACIÓN
+# CONFIGURACIÓN DE STREAMLIT
 # ------------------------------
 st.set_page_config(layout="wide", page_title="Dashboard Ejecutivo")
 
 # ------------------------------
 # RUTAS DE ARCHIVOS
 # ------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # CORRECCIÓN: file en lugar de file
 
 def get_base64(file):
     with open(file, "rb") as f:
@@ -121,13 +121,13 @@ if 'CONTENIDO' in df.columns:
     sel_contenido = st.sidebar.multiselect("Contenido", df['CONTENIDO'].dropna().unique())
     if sel_contenido:
         df_filtrado = df_filtrado[df_filtrado['CONTENIDO'].isin(sel_contenido)]
-
-# ------------------------------
+        # ------------------------------
 # KPIs
 # ------------------------------
 def tarjeta(title, valor, clase):
     st.markdown(f'<div class="card {clase}"><h4>{title}</h4><h2>{valor:,.2f}</h2></div>', unsafe_allow_html=True)
-    st.markdown('<div class="bloque"><h3>Resumen Ejecutivo</h3></div>', unsafe_allow_html=True)
+
+st.markdown('<div class="bloque"><h3>Resumen Ejecutivo</h3></div>', unsafe_allow_html=True)
 col1, col2, col3, col4 = st.columns(4)
 with col1: tarjeta("Operaciones", len(df_filtrado), "card1")
 with col2: tarjeta("Exportado (t)", df_filtrado['PESO NETO EXPORTADO'].sum(), "card2")
