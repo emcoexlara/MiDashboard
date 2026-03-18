@@ -5,11 +5,11 @@ import streamlit as st
 # ------------------------------
 # DETECCIÓN AUTOMÁTICA DE RUTAS
 # ------------------------------
-def obtener_assets_dir():
+def obtener_asseets_dir():
     posibles_rutas = [
-        Path().absolute() / "assets",
-        Path(file).parent / "assets" if "file" in globals() else None,
-        Path.cwd() / "assets",
+        Path().absolute() / "asseets",
+        Path(file).parent / "asseets" if "file" in globals() else None,
+        Path.cwd() / "asseets",
     ]
 
     for ruta in posibles_rutas:
@@ -18,7 +18,7 @@ def obtener_assets_dir():
 
     return None
 
-ASSETS_DIR = obtener_assets_dir()
+ASSETS_DIR = obtener_asseets_dir()
 
 # ------------------------------
 # FUNCION BASE64
