@@ -1,6 +1,35 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import streamlit as st
+import pandas as pd
+
+# --- Función para cargar datos ---
+@st.cache_data
+def load_data():
+    try:
+        df = pd.read_excel("data/datos.xlsx")
+        # Normalizar nombres
+        df.columns = df.columns.str.strip().str.upper().str.replace(" ", "_").str.replace("Á","A").str.replace("É","E").str.replace("Í","I").str.replace("Ó","O").str.replace("Ú","U")
+        # Convertir pesos a numéricos
+        for col in ["PESO_NETO_EXPORTADO", "PESO_NETO_IMPORTADO", "PESO_NETO_MANEJADO"]:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+            else:
+                df[col] = 0
+        return df
+    except Exception as e:
+        st.error(f"No se pudo cargar el archivo Excel: {e}")
+        return pd.DataFrame()  # devuelve DF vacío para que no rompa la app
+
+# --- Cargar datos ---
+df = load_data()
+
+# --- Verificar si df se cargó ---
+if df.empty:
+    st.stop()  # Detiene la app si no hay datos
+
+# --- Copiar df para filtros ---
+df_filtrado = df.copy()import plotly.express as px
 import base64
 
 # --- CONFIGURACIONES ---
