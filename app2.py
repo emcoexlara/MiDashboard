@@ -120,3 +120,24 @@ if 'LATITUD' in df_filtrado.columns and 'LONGITUD' in df_filtrado.columns:
         st.plotly_chart(fig_map, use_container_width=True)
     else:
         st.warning("No hay coordenadas LATITUD/LONGITUD para mostrar el mapa.")
+import plotly.express as px
+
+# Filtrar filas con coordenadas válidas
+df_map = df.dropna(subset=['LATITUD', 'LONGITUD'])
+
+# Mostrar mapa de exportaciones
+if not df_map.empty:
+    fig_map = px.scatter_geo(
+        df_map,
+        lat='LATITUD',
+        lon='LONGITUD',
+        hover_name='DESTINO',
+        size='Peso Neto Exportado',
+        projection="natural earth",
+        title="Mapa de Exportaciones por País",
+        color='Peso Neto Exportado',
+        color_continuous_scale='Blues'
+    )
+    st.plotly_chart(fig_map, use_container_width=True)
+else:
+    st.warning("No hay coordenadas LATITUD/LONGITUD para mostrar el mapa.")
