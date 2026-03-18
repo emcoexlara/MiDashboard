@@ -101,3 +101,35 @@ st.subheader("Distribución por País de Destino")
 if 'DESTINO' in df_filtrado.columns:
     fig_destinos = px.pie(df_filtrado, names='DESTINO', values='Peso Neto Exportado', title="Peso Neto Exportado por Destino")
     st.plotly_chart(fig_destinos, use_container_width=True)
+    
+# --- MAPA 3D DE EXPORTACIONES ---
+st.subheader("Mapa 3D de Exportaciones")
+if 'LONGITUD' not in df_filtrado.columns or 'LATITUD' not in df_filtrado.columns:
+    from geopy.geocoders import Nominatim
+    geolocator = Nominatim(user_agent="geo_dashboard")
+
+    def geocode_destino(destino):
+        try:
+            location = geolocator.geocode(destino)
+            if location:
+                return location.latitude, location.longitude
+            return None, None
+        except:
+            return None, None
+
+    df_filtrado['LATITUD'] = df_filtrado['DESTINO'].apply(lambda x: geocode_destino(x)[0])
+    df_filtrado['LONGITUD'] = df_filtrado['DESTINO'].apply(lambda x: geocode_destino(x)[1])
+
+if df_filtrado['LONGITUD'].notnull().any() and df_filtrado['LATITUD'].notnull().any():
+    fig_map = px.scatter_3d(df_filtrado,
+                            x='LONGITUD',
+                            y='LATITUD',
+                            z='Peso Neto Exportado',
+                            color='DESTINO',
+                            size='Peso Neto Exportado',
+                            hover_name='DESTINO',
+                            labels={"LONGITUD":"Longitud","LATITUD":"Latitud","Peso Neto Exportado":"Toneladas"},
+                            title="Exportaciones en 3D por Destino")
+    st.plotly_chart(fig_map, use_container_width=True)
+else:
+    st.warning("No se pudo generar el mapa 3D: verifica que los destinos sean correctos y tengan coordenadas.")
