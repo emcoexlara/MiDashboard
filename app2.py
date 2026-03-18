@@ -26,9 +26,6 @@ fondo_path = "assets/fondo_comercio.jpg"
 logo_path = "assets/logo_empresa.png"
 
 # st.markdown(f"<h2 style='color:{COLOR_TITULO}; text-align:center;'>Mapa 3D de Exportaciones</h2>", unsafe_allow_html=True)
-# df_map = df_filtrado.dropna(subset=['LATITUD', 'LONGITUD'])
-# fig_map = px.scatter_3d(df_map, x='LONGITUD', y='LATITUD', z='PESO NETO EXPORTADO', color='DESTINO')
-# st.plotly_chart(fig_map)
 
 st.image(logo_path, width=150)
 
