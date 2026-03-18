@@ -22,19 +22,16 @@ try:
 
     st.markdown(f"""
     <style>
-
     .stApp {{
         background-image: url("data:image/jpg;base64,{fondo}");
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
     }}
-
     [data-testid="stSidebar"] {{
         background: linear-gradient(180deg, #0B1F3A 0%, #1E3A5F 100%);
         color: white;
     }}
-
     .titulo-principal {{
         text-align: center;
         font-size: 38px;
@@ -43,7 +40,6 @@ try:
         text-shadow: 3px 3px 6px white;
         margin-bottom: 20px;
     }}
-
     .bloque {{
         background-color: rgba(255,255,255,0.92);
         padding: 15px;
@@ -51,7 +47,6 @@ try:
         margin-top: 15px;
         box-shadow: 3px 3px 12px rgba(0,0,0,0.35);
     }}
-
     .card {{
         padding: 20px;
         border-radius: 18px;
@@ -60,22 +55,18 @@ try:
         font-weight: bold;
         box-shadow: 2px 2px 12px rgba(0,0,0,0.4);
     }}
-
     .card1 {{ background: linear-gradient(135deg, #0B1F3A, #1E3A5F); }}
     .card2 {{ background: linear-gradient(135deg, #1E8449, #27AE60); }}
     .card3 {{ background: linear-gradient(135deg, #B03A2E, #E74C3C); }}
     .card4 {{ background: linear-gradient(135deg, #7D3C98, #AF7AC5); }}
-
     .logo {{
         display: flex;
         justify-content: center;
         margin-bottom: 10px;
     }}
-
     #MainMenu {{visibility: hidden;}}
     footer {{visibility: hidden;}}
     header {{visibility: hidden;}}
-
     </style>
     """, unsafe_allow_html=True)
 
@@ -85,7 +76,7 @@ try:
     )
 
     st.markdown(
-        '<div class="titulo-principal">DASHBOARD LOGÍSTICO DE OPERACIONES</div>',
+        '<div class="titulo-principal">Control Operacional Empresa de Comercio Exterior de Lara</div>',
         unsafe_allow_html=True
     )
 
@@ -133,20 +124,32 @@ st.sidebar.title("Filtros")
 
 df_filtrado = df.copy()
 
+# Filtro por fecha
 if 'FECHA' in df.columns:
-    rango = st.sidebar.date_input("Rango de fechas", (df['FECHA'].min(), df['FECHA'].max()))
+    rango = st.sidebar.date_input(
+        "Rango de fechas",
+        (df['FECHA'].min(), df['FECHA'].max())
+    )
     if isinstance(rango, tuple):
         df_filtrado = df_filtrado[
             (df_filtrado['FECHA'] >= pd.to_datetime(rango[0])) &
             (df_filtrado['FECHA'] <= pd.to_datetime(rango[1]))
         ]
 
+# Filtro por destino
 if 'DESTINO' in df.columns:
-    sel_destino = st.sidebar.multiselect("Destino", df['DESTINO'].dropna().unique())
+    sel_destino = st.sidebar.multiselect(
+        "Destino",
+        df['DESTINO'].dropna().unique()
+    )
     if sel_destino:
         df_filtrado = df_filtrado[df_filtrado['DESTINO'].isin(sel_destino)]
-        if 'CONTENIDO' in df.columns:
-    sel_contenido = st.sidebar.multiselect("Contenido", df['CONTENIDO'].dropna().unique())
+        # Filtro por contenido
+if 'CONTENIDO' in df.columns:
+    sel_contenido = st.sidebar.multiselect(
+        "Contenido",
+        df['CONTENIDO'].dropna().unique()
+    )
     if sel_contenido:
         df_filtrado = df_filtrado[df_filtrado['CONTENIDO'].isin(sel_contenido)]
 
@@ -187,35 +190,6 @@ if 'FECHA' in df_filtrado.columns:
     tendencia = df_filtrado.groupby('FECHA')['PESO NETO EXPORTADO'].sum().reset_index()
     fig2 = px.line(tendencia, x='FECHA', y='PESO NETO EXPORTADO')
     st.plotly_chart(fig2, use_container_width=True)
-
-# ------------------------------
-# MAPA CON RUTAS
-# ------------------------------
-seccion("Rutas de Exportación")
-
-origen = [8.0, -66.0]
-
-coords = {
-    "USA": [37, -95],
-    "ESPAÑA": [40, -3],
-    "BRASIL": [-14, -51],
-    "COLOMBIA": [4, -74]
-}
-
-fig_map = go.Figure()
-
-for d in df_filtrado['DESTINO'].dropna().unique():
-    if d.upper() in coords:
-        lat2, lon2 = coords[d.upper()]
-        fig_map.add_trace(go.Scattergeo(
-            lon=[origen[1], lon2],
-            lat=[origen[0], lat2],
-            mode='lines',
-            line=dict(width=2)
-        ))
-
-fig_map.update_layout(geo=dict(showland=True))
-st.plotly_chart(fig_map, use_container_width=True)
 
 # ------------------------------
 # TABLA
