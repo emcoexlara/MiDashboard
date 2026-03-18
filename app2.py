@@ -110,7 +110,7 @@ st.markdown(f"<h2 style='color:{COLOR_TITULO}; text-align:center;'>Mapa de Expor
 df_map = df_filtrado.dropna(subset=['DESTINO', 'Peso Neto Exportado'])
 
 # Crear el mapa geográfico
-fig_map = px.scatter_geo(
+fig_map = px.scatter_geo()
     df_map,
     locations="DESTINO",          # nombres de países
     locationmode="country names",
