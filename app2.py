@@ -101,13 +101,19 @@ st.subheader("Distribución por País de Destino")
 if 'DESTINO' in df_filtrado.columns:
     fig_destinos = px.pie(df_filtrado, names='DESTINO', values='Peso Neto Exportado', title="Peso Neto Exportado por Destino")
     st.plotly_chart(fig_destinos, use_container_width=True)
-    # --- MAPA 3D DE EXPORTACIONES ---
-if 'LATITUD' in df_filtrado.columns and 'LONGITUD' in df_filtrado.columns:
-    if df_filtrado['LONGITUD'].notnull().any() and df_filtrado['LATITUD'].notnull().any():
-        fig_map = px.scatter_3d(df_filtrado, x='LONGITUD', y='LATITUD', z='Peso Neto Exportado', color='DESTINO',
+
+# --- MAPA 3D DE EXPORTACIONES AUTOMÁTICO ---
+if 'DESTINO' in df_filtrado.columns:
+    geolocator = Nominatim(user_agent="comex_dashboard")
+    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+    
+    df_filtrado['LATITUD'] = df_filtrado['DESTINO'].apply(lambda x: geocode(x).latitude if geocode(x) else None)
+    df_filtrado['LONGITUD'] = df_filtrado['DESTINO'].apply(lambda x: geocode(x).longitude if geocode(x) else None)
+
+    df_map = df_filtrado.dropna(subset=['LATITUD', 'LONGITUD'])
+    if not df_map.empty:
+        fig_map = px.scatter_3d(df_map, x='LONGITUD', y='LATITUD', z='Peso Neto Exportado', color='DESTINO',
                                 size='Peso Neto Exportado', hover_name='DESTINO', title="Mapa 3D de Exportaciones")
         st.plotly_chart(fig_map, use_container_width=True)
     else:
-        st.warning("Las columnas LATITUD y LONGITUD existen pero no contienen datos.")
-else:
-    st.warning("Para mostrar el mapa 3D, agrega las columnas 'LATITUD' y 'LONGITUD' a tu Excel con coordenadas de destino.")
+        st.warning("No se pudo generar el mapa: revisa que los nombres de DESTINO sean válidos para geocoding.")
