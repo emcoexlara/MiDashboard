@@ -143,7 +143,7 @@ df_map = df[['DESTINO', 'Peso Neto Exportado']].groupby('DESTINO').sum().reset_i
 st.markdown(f"<h2 style='color:{COLOR_TITULO}; text-align:center;'>Mapa de Exportaciones por País</h2>", unsafe_allow_html=True)
 
 # Crear mapa de exportaciones por país
-fig_map = px.choropleth()
+fig_map = px.choropleth(
     df_map,
     locations="DESTINO",
     locationmode="country names",
