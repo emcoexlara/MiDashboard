@@ -133,11 +133,26 @@ else:
     
     col1, col2, col3, col4 = st.columns(4)
     
-    col1.metric("Operaciones", len(df_filtrado)) if 'FECHA' in df_filtrado.columns else None
-    col2.metric("Peso Neto Exportado (t)", f"{df_filtrado['peso neto exportado (t)'].sum():,.2f}") if "peso neto exportado (t)" in df_filtrado.columns else None
-    col3.metric("Peso Neto Importado (t)", f"{df_filtrado['peso neto importado (t)'].sum():,.2f}") if "peso neto importado (t)" in df_filtrado.columns else None
-    col4.metric("Peso Total (t)", f"{df_filtrado['peso total (t)'].sum():,.2f}") if "peso total (t)" in df_filtrado.columns else None
-    
+    col1, col2, col3, col4 = st.columns(4)
+
+# KPI 1: Operaciones
+if 'FECHA' in df_filtrado.columns:
+    col1.metric("Operaciones", len(df_filtrado))
+
+# KPI 2: Exportado
+if "peso neto exportado (t)" in df_filtrado.columns:
+    total_exportado = df_filtrado["peso neto exportado (t)"].sum()
+    col2.metric("Peso Neto Exportado (t)", f"{total_exportado:,.2f}")
+
+# KPI 3: Importado
+if "peso neto importado (t)" in df_filtrado.columns:
+    total_importado = df_filtrado["peso neto importado (t)"].sum()
+    col3.metric("Peso Neto Importado (t)", f"{total_importado:,.2f}")
+
+# KPI 4: Total
+if "peso total (t)" in df_filtrado.columns:
+    total_general = df_filtrado["peso total (t)"].sum()
+    col4.metric("Peso Total (t)", f"{total_general:,.2f}")
     # ------------------------------
     # GRÁFICAS
     # ------------------------------
