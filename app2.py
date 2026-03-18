@@ -15,7 +15,7 @@ st.set_page_config(layout="wide", page_title="Dashboard Ejecutivo")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 fondo_path = os.path.join(BASE_DIR, "assets", "fondo_comercio.jpg")
-logo_path = os.path.join(BASE_DIR, "assets", "logo.png")
+logo_path = os.path.join(BASE_DIR, "assets", "logo_empreda.png")
 excel_path = os.path.join(BASE_DIR, "data", "data.xlsx")
 
 def get_base64_safe(file_path):
@@ -123,13 +123,13 @@ if 'DESTINO' in df.columns:
     sel_destino = st.sidebar.multiselect("Destino", df['DESTINO'].dropna().unique())
     if sel_destino:
         df_filtrado = df_filtrado[df_filtrado['DESTINO'].isin(sel_destino)]
-
-# Contenido
+        # Contenido
 if 'CONTENIDO' in df.columns:
     sel_contenido = st.sidebar.multiselect("Contenido", df['CONTENIDO'].dropna().unique())
     if sel_contenido:
         df_filtrado = df_filtrado[df_filtrado['CONTENIDO'].isin(sel_contenido)]
-        # ------------------------------
+
+# ------------------------------
 # KPIs
 # ------------------------------
 def tarjeta(title, valor, clase):
