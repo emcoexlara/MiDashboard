@@ -20,6 +20,7 @@ def get_base64(file):
 
 fondo_path = os.path.join(BASE_DIR, "assets", "fondo.jpg")
 logo_path = os.path.join(BASE_DIR, "assets", "logo.png")
+excel_path = os.path.join(BASE_DIR, "data", "data.xlsx")
 
 fondo = get_base64(fondo_path)
 logo = get_base64(logo_path)
@@ -82,16 +83,19 @@ st.markdown('<div class="titulo-principal">Control Operacional Empresa de Comerc
 # ------------------------------
 # CARGA DE DATOS
 # ------------------------------
-df = pd.read_excel(os.path.join(BASE_DIR, "data", "data.xlsx"))
+df = pd.read_excel(excel_path)
 df.columns = df.columns.str.strip().str.upper()
 
+# Convertir fechas
 if 'FECHA' in df.columns:
     df['FECHA'] = pd.to_datetime(df['FECHA'], errors='coerce')
 
+# Convertir columnas numéricas
 for col in ['PESO NETO EXPORTADO', 'PESO NETO IMPORTADO', 'PESO NETO MANEJADO']:
     if col in df.columns:
         df[col] = pd.to_numeric(df[col], errors='coerce')
 
+# Peso total
 df['PESO TOTAL'] = df.get('PESO NETO EXPORTADO',0).fillna(0) + df.get('PESO NETO IMPORTADO',0).fillna(0)
 df_filtrado = df.copy()
 
