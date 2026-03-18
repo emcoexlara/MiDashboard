@@ -105,9 +105,14 @@ else:
     # APLICAR FILTROS
     # ------------------------------
     df_filtrado = df.copy()
-    if fecha_seleccion and 'FECHA' in df_filtrado.columns:
-        df_filtrado = df_filtrado[df_filtrado['FECHA'] == pd.to_datetime(fecha_seleccion)]
-    if destino_seleccion:
+
+# FILTRO POR FECHA (RANGO)
+if 'FECHA' in df_filtrado.columns and isinstance(rango_fechas, tuple):
+    fecha_inicio, fecha_fin = rango_fechas
+    df_filtrado = df_filtrado[
+        (df_filtrado['FECHA'] >= pd.to_datetime(fecha_inicio)) &
+        (df_filtrado['FECHA'] <= pd.to_datetime(fecha_fin))
+    ]
         df_filtrado = df_filtrado[df_filtrado['DESTINO'].isin(destino_seleccion)]
     if contenido_seleccion:
         df_filtrado = df_filtrado[df_filtrado['CONTENIDO'].isin(contenido_seleccion)]
