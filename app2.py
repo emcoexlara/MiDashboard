@@ -1,88 +1,79 @@
-import base64
-from pathlib import Path
 import streamlit as st
+from pathlib import Path
+import base64
 
 # ------------------------------
-# DETECCIÓN AUTOMÁTICA DE RUTAS
+# FUNCIÓN PARA CARGAR IMÁGENES
 # ------------------------------
-def obtener_asseets_dir():
-    posibles_rutas = [
-        Path().absolute() / "asseets",
-        Path(file).parent / "asseets" if "file" in globals() else None,
-        Path.cwd() / "asseets",
-    ]
-
-    for ruta in posibles_rutas:
-        if ruta and ruta.exists():
-            return ruta
-
-    return None
-
-ASSETS_DIR = obtener_asseets_dir()
-
-# ------------------------------
-# FUNCION BASE64
-# ------------------------------
-def cargar_imagen_base64(ruta):
+def cargar_base64(ruta):
     try:
-        with open(ruta, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-    except:
+        with open(ruta, "rb") as archivo:
+            return base64.b64encode(archivo.read()).decode()
+    except Exception as e:
+        st.error(f"Error cargando imagen: {e}")
         return None
 
 # ------------------------------
-# VALIDACIÓN
+# DETECTAR CARPETA ASSETS
 # ------------------------------
-if not ASSETS_DIR:
+def obtener_assets():
+    rutas = [
+        Path.cwd() / "assets",
+        Path().absolute() / "assets",
+    ]
+    for r in rutas:
+        if r.exists():
+            return r
+    return None
+
+ASSETS = obtener_assets()
+
+if ASSETS is None:
     st.error("❌ No se encontró la carpeta 'assets'")
     st.stop()
 
-st.sidebar.success(f"Asseets detectado en: {ASSEETS_DIR}")
-
 # ------------------------------
-# FONDO AUTOMÁTICO
+# BUSCAR IMÁGENES AUTOMÁTICAMENTE
 # ------------------------------
-def buscar_imagen(nombre_base):
-    extensiones = [".jpg", ".jpeg", ".png"]
+def buscar_archivo(nombre):
+    extensiones = [".png", ".jpg", ".jpeg"]
     for ext in extensiones:
-        ruta = ASSEETS_DIR / f"{nombre_base}{ext}"
+        ruta = ASSETS / f"{nombre}{ext}"
         if ruta.exists():
             return ruta
     return None
 
-ruta_fondo = buscar_imagen("fondo_comercio")
-img_fondo = cargar_imagen_base64(ruta_fondo) if ruta_fondo else None
+# ------------------------------
+# FONDO
+# ------------------------------
+ruta_fondo = buscar_archivo("fondo_comercio")
 
-if img_fondo:
+if ruta_fondo:
+    fondo_base64 = cargar_base64(ruta_fondo)
     st.markdown(f"""
     <style>
     .stApp {{
-        background: linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)),
-                    url("data:image/jpg;base64,{img_fondo}");
+        background-image: url("data:image/jpg;base64,{fondo_base64}");
         background-size: cover;
         background-position: center;
+        background-repeat: no-repeat;
     }}
     </style>
     """, unsafe_allow_html=True)
 else:
-    st.warning("⚠️ No se encontró imagen de fondo (fondo_comercio)")
+    st.warning("⚠️ No se encontró 'fondo_comercio' en assets")
 
 # ------------------------------
-# LOGO AUTOMÁTICO
+# LOGO
 # ------------------------------
-ruta_logo = buscar_imagen("logo_empresa")
-img_logo = cargar_imagen_base64(ruta_logo) if ruta_logo else None
+ruta_logo = buscar_archivo("logo_empresa")
 
-if img_logo:
+if ruta_logo:
+    logo_base64 = cargar_base64(ruta_logo)
     st.sidebar.markdown(f"""
     <div style="text-align:center;">
-        <img src="data:image/png;base64,{img_logo}" width="150">
+        <img src="data:image/png;base64,{logo_base64}" width="150">
     </div>
     """, unsafe_allow_html=True)
 else:
-    st.warning("⚠️ No se encontró logo (logo_empresa)")
-
-    st.dataframe(
-        df.style.apply(estilo, subset=["peso total (t)"]),
-        use_container_width=True
-    )
+    st.warning("⚠️ No se encontró 'logo_empresa' en assets")
