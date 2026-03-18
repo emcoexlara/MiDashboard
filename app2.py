@@ -16,7 +16,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 fondo_path = os.path.join(BASE_DIR, "assets", "fondo_comercio.jpg")
 logo_path = os.path.join(BASE_DIR, "assets", "logo_empresa.png")
-excel_path = os.path.join(BASE_DIR, "data", "data.xlsx")
+excel_path = os.path.join(BASE_DIR, "data", "datos.xlsx")
 
 def get_base64_safe(file_path):
     if not os.path.exists(file_path):
