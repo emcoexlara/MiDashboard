@@ -10,7 +10,7 @@ import os
 # ------------------------------
 st.set_page_config(layout="wide")
 
-BASE_DIR = Path(file).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent
 ASSETS = BASE_DIR / "assets"
 DATA_FILE = BASE_DIR / "datos.xlsx"
 
