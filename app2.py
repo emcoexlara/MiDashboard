@@ -82,33 +82,47 @@ df = cargar_datos(archivo_excel)
 if df.empty:
     st.warning("No se pudo cargar el archivo Excel o no contiene datos.")
 else:
-    # ------------------------------
-    # FILTROS
-    # ------------------------------
-    st.sidebar.markdown("### Filtros")
-    
-    # Fecha
-    fecha_seleccion = None
-    if 'FECHA' in df.columns:
-        min_fecha, max_fecha = df['FECHA'].min(), df['FECHA'].max()
-        fecha_seleccion = st.sidebar.date_input("Fecha", value=min_fecha, min_value=min_fecha, max_value=max_fecha)
-    
-    # Destino
-   # DESTINO
-if 'DESTINO' in df.columns:
-    destinos = df['DESTINO'].dropna().unique()
-    destino_sel = st.sidebar.multiselect("Destino", destinos)
+   # ------------------------------
+# FILTROS
+# ------------------------------
+df_filtrado = df.copy()
 
-    if destino_sel:
-        df_filtrado = df_filtrado[df_filtrado['DESTINO'].isin(destino_sel)]
+# FILTRO DE FECHA (RANGO)
+if 'FECHA' in df_filtrado.columns:
+    min_fecha = df_filtrado['FECHA'].min()
+    max_fecha = df_filtrado['FECHA'].max()
 
-# CONTENIDO
-if 'CONTENIDO' in df.columns:
-    contenidos = df['CONTENIDO'].dropna().unique()
-    contenido_sel = st.sidebar.multiselect("Contenido", contenidos)
+    rango_fechas = st.sidebar.date_input(
+        "Rango de Fechas",
+        value=(min_fecha, max_fecha)
+    )
 
-    if contenido_sel:
-        df_filtrado = df_filtrado[df_filtrado['CONTENIDO'].isin(contenido_sel)]
+    if isinstance(rango_fechas, tuple):
+        fecha_inicio, fecha_fin = rango_fechas
+        df_filtrado = df_filtrado[
+            (df_filtrado['FECHA'] >= pd.to_datetime(fecha_inicio)) &
+            (df_filtrado['FECHA'] <= pd.to_datetime(fecha_fin))
+        ]
+
+# FILTRO DESTINO
+if 'DESTINO' in df_filtrado.columns:
+    destinos = df_filtrado['DESTINO'].dropna().unique()
+    destino_seleccion = st.sidebar.multiselect("Destino", destinos)
+
+    if destino_seleccion:
+        df_filtrado = df_filtrado[
+            df_filtrado['DESTINO'].isin(destino_seleccion)
+        ]
+
+# FILTRO CONTENIDO
+if 'CONTENIDO' in df_filtrado.columns:
+    contenidos = df_filtrado['CONTENIDO'].dropna().unique()
+    contenido_seleccion = st.sidebar.multiselect("Contenido", contenidos)
+
+    if contenido_seleccion:
+        df_filtrado = df_filtrado[
+            df_filtrado['CONTENIDO'].isin(contenido_seleccion)
+        ]
     
     # ------------------------------
     # APLICAR FILTROS
