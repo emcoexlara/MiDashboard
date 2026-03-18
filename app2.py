@@ -40,7 +40,7 @@ def set_background(png_file):
 
 # ===== FONDO Y LOGO =====
 fondo_path = os.path.join(ASSETS_DIR, "fondo_comercio.jpg")
-logo_path = os.path.join(ASSETS_DIR, "logo_empreda.png")
+logo_path = os.path.join(ASSETS_DIR, "logo_empresa.png")
 
 set_background(fondo_path)
 st.image(logo_path, width=120)
