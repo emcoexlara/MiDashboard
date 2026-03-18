@@ -37,7 +37,7 @@ if not ASSETS_DIR:
     st.error("❌ No se encontró la carpeta 'assets'")
     st.stop()
 
-st.sidebar.success(f"Assets detectado en: {ASSETS_DIR}")
+st.sidebar.success(f"Asseets detectado en: {ASSEETS_DIR}")
 
 # ------------------------------
 # FONDO AUTOMÁTICO
@@ -45,7 +45,7 @@ st.sidebar.success(f"Assets detectado en: {ASSETS_DIR}")
 def buscar_imagen(nombre_base):
     extensiones = [".jpg", ".jpeg", ".png"]
     for ext in extensiones:
-        ruta = ASSETS_DIR / f"{nombre_base}{ext}"
+        ruta = ASSEETS_DIR / f"{nombre_base}{ext}"
         if ruta.exists():
             return ruta
     return None
