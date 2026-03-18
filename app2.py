@@ -94,12 +94,21 @@ else:
         fecha_seleccion = st.sidebar.date_input("Fecha", value=min_fecha, min_value=min_fecha, max_value=max_fecha)
     
     # Destino
-    destino_seleccion = df['DESTINO'].unique() if 'DESTINO' in df.columns else []
-    destino_seleccion = st.sidebar.multiselect("Destino", destino_seleccion, default=destino_seleccion)
-    
-    # Contenido
-    contenido_seleccion = df['CONTENIDO'].unique() if 'CONTENIDO' in df.columns else []
-    contenido_seleccion = st.sidebar.multiselect("Contenido", contenido_seleccion, default=contenido_seleccion)
+   # DESTINO
+if 'DESTINO' in df.columns:
+    destinos = df['DESTINO'].dropna().unique()
+    destino_sel = st.sidebar.multiselect("Destino", destinos)
+
+    if destino_sel:
+        df_filtrado = df_filtrado[df_filtrado['DESTINO'].isin(destino_sel)]
+
+# CONTENIDO
+if 'CONTENIDO' in df.columns:
+    contenidos = df['CONTENIDO'].dropna().unique()
+    contenido_sel = st.sidebar.multiselect("Contenido", contenidos)
+
+    if contenido_sel:
+        df_filtrado = df_filtrado[df_filtrado['CONTENIDO'].isin(contenido_sel)]
     
     # ------------------------------
     # APLICAR FILTROS
