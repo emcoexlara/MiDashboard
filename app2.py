@@ -230,7 +230,7 @@ with tabs[1]:
     st.plotly_chart(fig_exp, use_container_width=True)
     st.plotly_chart(fig_imp, use_container_width=True)
     with tabs[2]:
-    seccion_titulo("Países")
+    seccion_titulo("Destino")
     if 'destino' in df_filtrado.columns:
         df_p = df_filtrado.groupby("destino")[["peso total (t)"]].sum().reset_index()
         fig_p = px.bar(df_p, x="destino", y="peso total (t)", color_discrete_sequence=[COLOR1])
