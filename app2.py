@@ -102,7 +102,7 @@ if 'DESTINO' in df_filtrado.columns:
     fig_destinos = px.pie(df_filtrado, names='DESTINO', values='Peso Neto Exportado', title="Peso Neto Exportado por Destino")
     st.plotly_chart(fig_destinos, use_container_width=True)
 
-# --- MAPA DE EXPORTACIONES ---
+# --- MAPA DE EXPORTACIONES (Scatter Geo) ---
 if 'LATITUD' in df_filtrado.columns and 'LONGITUD' in df_filtrado.columns:
     df_map = df_filtrado.dropna(subset=['LATITUD', 'LONGITUD'])
     if not df_map.empty:
@@ -112,6 +112,12 @@ if 'LATITUD' in df_filtrado.columns and 'LONGITUD' in df_filtrado.columns:
                                  hover_name='DESTINO',
                                  size='Peso Neto Exportado',
                                  projection="natural earth",
+                                 title="Mapa de Exportaciones por País",
+                                 color='Peso Neto Exportado',
+                                 color_continuous_scale='Blues')
+        st.plotly_chart(fig_map, use_container_width=True)
+    else:
+        st.warning("No hay coordenadas LATITUD/LONGITUD para mostrar el mapa.")
                                  title="Mapa de Exportaciones por País")
         st.plotly_chart(fig_map, use_container_width=True)
     else:
