@@ -161,20 +161,35 @@ if 'FECHA' in df_filtrado.columns:
 if 'DESTINO' in df_filtrado.columns:
     # Generar lat/lon ficticia si no existen
     if 'LATITUD' not in df_filtrado.columns or 'LONGITUD' not in df_filtrado.columns:
-        # Puedes reemplazar con tus coordenadas reales por destino
         import random
         destino_coords = {}
         for d in df_filtrado['DESTINO'].unique():
             destino_coords[d] = {'LAT': random.uniform(-10,10), 'LON': random.uniform(-70,-60)}
         df_filtrado['LATITUD'] = df_filtrado['DESTINO'].apply(lambda x: destino_coords[x]['LAT'])
         df_filtrado['LONGITUD'] = df_filtrado['DESTINO'].apply(lambda x: destino_coords[x]['LON'])
+    
+    # Asegurar que las columnas sean numéricas y eliminar filas inválidas
+    df_filtrado['LATITUD'] = pd.to_numeric(df_filtrado['LATITUD'], errors='coerce')
+    df_filtrado['LONGITUD'] = pd.to_numeric(df_filtrado['LONGITUD'], errors='coerce')
+    df_filtrado['PESO NETO EXPORTADO'] = pd.to_numeric(df_filtrado['PESO NETO EXPORTADO'], errors='coerce')
+    df_mapa = df_filtrado.dropna(subset=['LATITUD','LONGITUD','PESO NETO EXPORTADO'])
 
-    st.markdown('<div class="bloque"><h3>Mapa de Destinos Exportados (3D)</h3></div>', unsafe_allow_html=True)
-    fig_map = px.scatter_3d(df_filtrado, x='LONGITUD', y='LATITUD', z='PESO NETO EXPORTADO', color='DESTINO',
-                            size='PESO NETO EXPORTADO', hover_name='DESTINO')
-    fig_map.update_layout(scene=dict(
-        xaxis_title='Longitud',
-        yaxis_title='Latitud',
-        zaxis_title='Peso Exportado (t)'
-    ))
-    st.plotly_chart(fig_map, use_container_width=True)
+    if not df_mapa.empty:
+        st.markdown('<div class="bloque"><h3>Mapa de Destinos Exportados (3D)</h3></div>', unsafe_allow_html=True)
+        fig_map = px.scatter_3d(
+            df_mapa,
+            x='LONGITUD',
+            y='LATITUD',
+            z='PESO NETO EXPORTADO',
+            color='DESTINO',
+            size='PESO NETO EXPORTADO',
+            hover_name='DESTINO'
+        )
+        fig_map.update_layout(scene=dict(
+            xaxis_title='Longitud',
+            yaxis_title='Latitud',
+            zaxis_title='Peso Exportado (t)'
+        ))
+        st.plotly_chart(fig_map, use_container_width=True)
+    else:
+        st.info("No hay datos válidos para mostrar en el mapa 3D.")
