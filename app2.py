@@ -102,42 +102,24 @@ if 'DESTINO' in df_filtrado.columns:
     fig_destinos = px.pie(df_filtrado, names='DESTINO', values='Peso Neto Exportado', title="Peso Neto Exportado por Destino")
     st.plotly_chart(fig_destinos, use_container_width=True)
 
-# --- MAPA DE EXPORTACIONES (Scatter Geo) ---
-if 'LATITUD' in df_filtrado.columns and 'LONGITUD' in df_filtrado.columns:
-    df_map = df_filtrado.dropna(subset=['LATITUD', 'LONGITUD'])
-    if not df_map.empty:
-        fig_map = px.scatter_geo(
-            df_map,
-            lat='LATITUD',
-            lon='LONGITUD',
-            hover_name='DESTINO',
-            size='Peso Neto Exportado',
-            projection="natural earth",
-            title="Mapa de Exportaciones por País",
-            color='Peso Neto Exportado',
-            color_continuous_scale='Blues'
-        )
-        st.plotly_chart(fig_map, use_container_width=True)
-    else:
-        st.warning("No hay coordenadas LATITUD/LONGITUD para mostrar el mapa.")
-import plotly.express as px
+# --- MAPA DE EXPORTACIONES ---
+st.markdown(f"<h2 style='color:{COLOR_TITULO}; text-align:center;'>Mapa de Exportaciones por País</h2>", unsafe_allow_html=True)
 
-# Filtrar filas con coordenadas válidas
-df_map = df.dropna(subset=['LATITUD', 'LONGITUD'])
+# Filtrar datos con destino y peso
+df_map = df_filtrado.dropna(subset=['DESTINO', 'Peso Neto Exportado'])
 
-# Mostrar mapa de exportaciones
-if not df_map.empty:
-    fig_map = px.scatter_geo(
-        df_map,
-        lat='LATITUD',
-        lon='LONGITUD',
-        hover_name='DESTINO',
-        size='Peso Neto Exportado',
-        projection="natural earth",
-        title="Mapa de Exportaciones por País",
-        color='Peso Neto Exportado',
-        color_continuous_scale='Blues'
-    )
-    st.plotly_chart(fig_map, use_container_width=True)
-else:
-    st.warning("No hay coordenadas LATITUD/LONGITUD para mostrar el mapa.")
+# Crear el mapa geográfico
+fig_map = px.scatter_geo(
+    df_map,
+    locations="DESTINO",          # nombres de países
+    locationmode="country names",
+    size="Peso Neto Exportado",    # tamaño según toneladas
+    hover_name="DESTINO",
+    color="Peso Neto Exportado",
+    color_continuous_scale=[COLOR_PRINCIPAL, COLOR_SECUNDARIO],
+    projection="natural earth",
+    template="plotly_white"
+)
+
+# Mostrar el mapa en Streamlit
+st.plotly_chart(fig_map, use_container_width=True)
