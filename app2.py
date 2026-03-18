@@ -54,14 +54,22 @@ def cargar_datos(file=None):
         df = pd.read_excel(archivo)
     except:
         return pd.DataFrame()
+    
     df.columns = df.columns.str.strip().str.lower()
+    
+    # Convertir pesos a numérico
     for col in ["peso neto manejado", "peso neto exportado", "peso neto importado"]:
         df[col] = pd.to_numeric(df.get(col, 0), errors="coerce").fillna(0)
+    
+    # Toneladas
     df["peso neto exportado (t)"] = df["peso neto exportado"] / 1000
     df["peso neto importado (t)"] = df["peso neto importado"] / 1000
     df["peso total (t)"] = (df["peso neto manejado"] + df["peso neto exportado"]) / 1000
+    
+    # Fecha
     if 'fecha' in df.columns:
         df['fecha'] = pd.to_datetime(df['fecha'])
+    
     return df
 
 archivo_excel = st.sidebar.file_uploader("Actualizar Excel", type=["xlsx"])
@@ -72,7 +80,7 @@ if df.empty:
     st.stop()
 
 # ------------------------------
-# FILTROS: FECHA, DESTINO, CONTENIDO
+# FILTROS: SOLO FECHA, DESTINO Y CONTENIDO
 # ------------------------------
 st.sidebar.markdown("### Filtros")
 
