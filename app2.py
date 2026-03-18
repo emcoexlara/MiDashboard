@@ -5,7 +5,7 @@ import base64
 # ------------------------------
 # UBICACIÓN REAL DEL PROYECTO
 # ------------------------------
-BASE_DIR = Path(file).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent
 ASSETS = BASE_DIR / "assets"
 
 st.write("BASE_DIR:", BASE_DIR)
