@@ -14,7 +14,7 @@ def get_base64(file):
 
 # Fondo y logo
 fondo = get_base64("assets/fondo_comercio.jpg")
-logo = get_base64("assets/logo_empreda.png")
+logo = get_base64("assets/logo_empresa.png")
 st.markdown(
     f"""
     <style>
