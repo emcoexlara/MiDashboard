@@ -4,81 +4,95 @@ import plotly.express as px
 import os
 import base64
 
-# ===== CONFIGURACIÓN DE PÁGINA =====
-st.set_page_config(page_title="Dashboard Comercio Exterior", layout="wide")
+# ================= CONFIGURACIÓN DE PÁGINA =================
+st.set_page_config(page_title="Control Operacional Comercio Exterior", layout="wide")
 
-# ===== RUTAS =====
+# ================= RUTAS =================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(BASE_DIR, "assets")
 DATA_DIR = os.path.join(BASE_DIR, "data")
-DATA_PATH = os.path.join(DATA_DIR, "datos.xlsx")  # Asegúrate del nombre exacto
+DATA_PATH = os.path.join(DATA_DIR, "datos.xlsx")  # Ajusta según tu archivo real
 
-# ===== FUNCIONES =====
+# ================= FUNCIONES =================
 def get_base64(file_path):
     with open(file_path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
 def set_background(png_file):
-    b64 = get_base64(png_file)
-    st.markdown(
-        f"""
-        <style>
-        .stApp {{
-            background-image: url("data:image/png;base64,{b64}");
-            background-size: cover;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+    if os.path.exists(png_file):
+        b64 = get_base64(png_file)
+        st.markdown(
+            f"""
+            <style>
+            .stApp {{
+                background-image: url("data:image/png;base64,{b64}");
+                background-size: cover;
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
 
-# ===== FONDO Y LOGO =====
+# ================= FONDO Y LOGO =================
 fondo_path = os.path.join(ASSETS_DIR, "fondo_comercio.jpg")
 logo_path = os.path.join(ASSETS_DIR, "logo_empresa.png")
-if os.path.exists(fondo_path):
-    set_background(fondo_path)
+set_background(fondo_path)
 if os.path.exists(logo_path):
     st.image(logo_path, width=120)
 
-# ===== TÍTULO PRINCIPAL =====
+# ================= TÍTULO PRINCIPAL =================
 st.markdown("""
-<h1 style="color:black; border:2px solid white; padding:15px; text-align:center;">
+<h1 style="color:#0B3C5D; border:3px solid #FFFFFF; padding:15px; text-align:center;">
 Control Operacional de Comercio Exterior de Lara
 </h1>
 """, unsafe_allow_html=True)
 
-# ===== CARGA DE DATOS =====
+# ================= CARGA DE DATOS =================
 @st.cache_data
 def load_data():
-    try:
-        df = pd.read_excel(DATA_PATH)
-        # Homogeneizar nombres
-        df.columns = [c.strip().upper() for c in df.columns]
-        
-        # Convertir columnas numéricas
-        numeric_cols = ["PESO NETO EXPORTADO", "PESO NETO IMPORTADO", "PESO NETO MANEJADO"]
-        for col in numeric_cols:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-        
-        # Crear columna de peso total
-        df["PESO TOTAL"] = df.get("PESO NETO EXPORTADO",0) + df.get("PESO NETO IMPORTADO",0)
-        
-        # Convertir FECHA a datetime
-        if "FECHA" in df.columns:
-            df["FECHA"] = pd.to_datetime(df["FECHA"], errors='coerce')
-        
-        return df
-    except Exception as e:
-        st.error(f"No se pudo cargar el archivo Excel: {e}")
-        return pd.DataFrame()
+    df = pd.read_excel(DATA_PATH)
+    df.columns = [c.strip().upper() for c in df.columns]
+
+    numeric_cols = ["PESO NETO EXPORTADO", "PESO NETO IMPORTADO", "PESO NETO MANEJADO"]
+    for col in numeric_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+    df["PESO TOTAL"] = df.get("PESO NETO EXPORTADO",0) + df.get("PESO NETO IMPORTADO",0)
+    
+    if "FECHA" in df.columns:
+        df["FECHA"] = pd.to_datetime(df["FECHA"], errors='coerce')
+    
+    # Generar columnas de latitud y longitud aproximadas si no existen
+    if "DESTINO" in df.columns:
+        import geopy
+        from geopy.geocoders import Nominatim
+        geolocator = Nominatim(user_agent="geoapi")
+        latitudes = []
+        longitudes = []
+        for dest in df["DESTINO"]:
+            try:
+                location = geolocator.geocode(dest)
+                if location:
+                    latitudes.append(location.latitude)
+                    longitudes.append(location.longitude)
+                else:
+                    latitudes.append(None)
+                    longitudes.append(None)
+            except:
+                latitudes.append(None)
+                longitudes.append(None)
+        df["LATITUD"] = latitudes
+        df["LONGITUD"] = longitudes
+    
+    return df
 
 df = load_data()
 if df.empty:
+    st.error("No se pudo cargar el archivo de datos.")
     st.stop()
 
-# ===== FILTROS OPCIONALES =====
-st.sidebar.header("Filtros (opcional)")
+# ================= FILTROS OPCIONALES =================
+st.sidebar.header("Filtros opcionales")
 fecha_seleccion = st.sidebar.date_input("Fecha")
 destino_seleccion = st.sidebar.multiselect("Destino", df['DESTINO'].dropna().unique() if 'DESTINO' in df.columns else [])
 contenido_seleccion = st.sidebar.multiselect("Contenido", df['CONTENIDO'].dropna().unique() if 'CONTENIDO' in df.columns else [])
@@ -91,67 +105,47 @@ if contenido_seleccion:
 if 'FECHA' in df_filtrado.columns and fecha_seleccion:
     df_filtrado = df_filtrado[df_filtrado['FECHA'] == pd.to_datetime(fecha_seleccion)]
 
-# ===== KPIs EJECUTIVOS CON ICONOS =====
-st.markdown("<h2 style='color:black;'>Resumen Ejecutivo</h2>", unsafe_allow_html=True)
+# ================= KPIs =================
+st.markdown("<h2 style='color:#0B3C5D;'>Resumen Ejecutivo</h2>", unsafe_allow_html=True)
 kpi_col1, kpi_col2, kpi_col3, kpi_col4 = st.columns(4)
+def kpi_box(col, titulo, valor, icon_url, bg_color="#FFFFFF"):
+    col.markdown(f"""
+    <div style="background-color:{bg_color}; padding:15px; border-radius:10px; text-align:center;">
+    <img src="{icon_url}" width="50"/>
+    <h3>{titulo}</h3>
+    <h2>{valor}</h2>
+    </div>
+    """, unsafe_allow_html=True)
 
-kpi_col1.markdown(f"""
-<div style="background-color:white; padding:15px; border-radius:10px; text-align:center;">
-<img src="https://img.icons8.com/ios-filled/50/000000/briefcase.png"/>
-<h3>Operaciones</h3>
-<h2>{len(df_filtrado)}</h2>
-</div>
-""", unsafe_allow_html=True)
+kpi_box(kpi_col1, "Operaciones", len(df_filtrado), "https://img.icons8.com/ios-filled/50/0B3C5D/briefcase.png")
+kpi_box(kpi_col2, "Exportador", f"{df_filtrado['PESO NETO EXPORTADO'].sum():,.2f} t", "https://img.icons8.com/ios-filled/50/0B3C5D/worldwide-location.png")
+kpi_box(kpi_col3, "Importador", f"{df_filtrado['PESO NETO IMPORTADO'].sum():,.2f} t", "https://img.icons8.com/ios-filled/50/0B3C5D/import.png")
+kpi_box(kpi_col4, "Peso Total", f"{df_filtrado['PESO TOTAL'].sum():,.2f} t", "https://img.icons8.com/ios-filled/50/0B3C5D/weight.png")
 
-kpi_col2.markdown(f"""
-<div style="background-color:white; padding:15px; border-radius:10px; text-align:center;">
-<img src="https://img.icons8.com/ios-filled/50/000000/worldwide-location.png"/>
-<h3>Exportador</h3>
-<h2>{df_filtrado['PESO NETO EXPORTADO'].sum():,.2f} t</h2>
-</div>
-""", unsafe_allow_html=True)
-kpi_col3.markdown(f"""
-<div style="background-color:white; padding:15px; border-radius:10px; text-align:center;">
-<img src="https://img.icons8.com/ios-filled/50/000000/import.png"/>
-<h3>Importador</h3>
-<h2>{df_filtrado['PESO NETO IMPORTADO'].sum():,.2f} t</h2>
-</div>
-""", unsafe_allow_html=True)
-
-kpi_col4.markdown(f"""
-<div style="background-color:white; padding:15px; border-radius:10px; text-align:center;">
-<img src="https://img.icons8.com/ios-filled/50/000000/weight.png"/>
-<h3>Peso Total</h3>
-<h2>{df_filtrado['PESO TOTAL'].sum():,.2f} t</h2>
-</div>
-""", unsafe_allow_html=True)
-
-# ===== GRÁFICOS EJECUTIVOS =====
-st.markdown("<h2 style='color:black;'>Gráficos Ejecutivos</h2>", unsafe_allow_html=True)
+# ================= GRÁFICOS =================
+st.markdown("<h2 style='color:#0B3C5D;'>Gráficos Ejecutivos</h2>", unsafe_allow_html=True)
 graf_col1, graf_col2 = st.columns(2)
 
-# Exportaciones por contenido
 if 'CONTENIDO' in df_filtrado.columns:
     fig_exp = px.bar(df_filtrado.groupby("CONTENIDO")["PESO NETO EXPORTADO"].sum().reset_index(),
                      x="CONTENIDO", y="PESO NETO EXPORTADO",
-                     title="Exportaciones por Contenido")
+                     title="Exportaciones por Contenido", color_discrete_sequence=["#1C7C54"])
     graf_col1.plotly_chart(fig_exp, use_container_width=True)
 
-# Importaciones por contenido
-if 'CONTENIDO' in df_filtrado.columns:
     fig_imp = px.bar(df_filtrado.groupby("CONTENIDO")["PESO NETO IMPORTADO"].sum().reset_index(),
                      x="CONTENIDO", y="PESO NETO IMPORTADO",
-                     title="Importaciones por Contenido")
+                     title="Importaciones por Contenido", color_discrete_sequence=["#F28C28"])
     graf_col2.plotly_chart(fig_imp, use_container_width=True)
 
-# ===== MAPA DE EXPORTACIONES =====
-if 'DESTINO' in df_filtrado.columns and not df_filtrado['DESTINO'].empty:
-    fig_map = px.scatter_geo(
-        df_filtrado,
-        locations="DESTINO",
-        locationmode='country names',
-        size="PESO NETO EXPORTADO",
-        hover_name="CONTENIDO",
-        title="Exportaciones por Destino"
-    )
+# ================= MAPA 3D =================
+st.markdown("<h2 style='color:#0B3C5D;'>Mapa de Destinos Exportados</h2>", unsafe_allow_html=True)
+if all(col in df_filtrado.columns for col in ["LATITUD","LONGITUD","PESO NETO EXPORTADO","DESTINO"]):
+    fig_map = px.scatter_3d(df_filtrado.dropna(subset=["LATITUD","LONGITUD"]),
+                            x='LONGITUD', y='LATITUD', z='PESO NETO EXPORTADO',
+                            color='DESTINO', size='PESO NETO EXPORTADO', hover_name='DESTINO',
+                            color_discrete_sequence=px.colors.qualitative.Prism)
     st.plotly_chart(fig_map, use_container_width=True)
+
+# ================= TABLA COMPLETA =================
+st.markdown("<h2 style='color:#0B3C5D;'>Datos Completos</h2>", unsafe_allow_html=True)
+st.dataframe(df_filtrado, use_container_width=True)
