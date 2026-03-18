@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import base64
+import os
 
 # ------------------------------
 # CONFIGURACIÓN
@@ -9,16 +10,23 @@ import base64
 st.set_page_config(layout="wide", page_title="Dashboard Ejecutivo")
 
 # ------------------------------
-# IDENTIDAD VISUAL
+# RUTAS DE ARCHIVOS
 # ------------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(file))
+
 def get_base64(file):
     with open(file, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
-# Fondo y logo
-fondo = get_base64("assets/fondo.jpg")
-logo = get_base64("assets/logo.png")
+fondo_path = os.path.join(BASE_DIR, "assets", "fondo.jpg")
+logo_path = os.path.join(BASE_DIR, "assets", "logo.png")
 
+fondo = get_base64(fondo_path)
+logo = get_base64(logo_path)
+
+# ------------------------------
+# ESTILOS CSS
+# ------------------------------
 st.markdown(f"""
 <style>
 .stApp {{
@@ -65,14 +73,16 @@ header {{visibility: hidden;}}
 </style>
 """, unsafe_allow_html=True)
 
-# Logo y título
+# ------------------------------
+# LOGO Y TÍTULO
+# ------------------------------
 st.markdown(f'<div class="logo"><img src="data:image/png;base64,{logo}" width="180"></div>', unsafe_allow_html=True)
 st.markdown('<div class="titulo-principal">Control Operacional Empresa de Comercio Exterior de Lara</div>', unsafe_allow_html=True)
 
 # ------------------------------
-# CARGA DE DATOS AUTOMÁTICA
+# CARGA DE DATOS
 # ------------------------------
-df = pd.read_excel("data/data.xlsx")
+df = pd.read_excel(os.path.join(BASE_DIR, "data", "data.xlsx"))
 df.columns = df.columns.str.strip().str.upper()
 
 if 'FECHA' in df.columns:
@@ -83,11 +93,10 @@ for col in ['PESO NETO EXPORTADO', 'PESO NETO IMPORTADO', 'PESO NETO MANEJADO']:
         df[col] = pd.to_numeric(df[col], errors='coerce')
 
 df['PESO TOTAL'] = df.get('PESO NETO EXPORTADO',0).fillna(0) + df.get('PESO NETO IMPORTADO',0).fillna(0)
-
-df_filtrado = df.copy()  # por defecto sin filtros
+df_filtrado = df.copy()
 
 # ------------------------------
-# FILTROS OPCIONALES EN SIDEBAR
+# FILTROS OPCIONALES
 # ------------------------------
 st.sidebar.title("Filtros (Opcionales)")
 
@@ -110,12 +119,11 @@ if 'CONTENIDO' in df.columns:
         df_filtrado = df_filtrado[df_filtrado['CONTENIDO'].isin(sel_contenido)]
 
 # ------------------------------
-# KPIs EJECUTIVOS
+# KPIs
 # ------------------------------
 def tarjeta(title, valor, clase):
-    st.markdown(f'<div class="card {clase}"><h4>{title}</h4><h2>{valor:,}</h2></div>', unsafe_allow_html=True)
-
-st.markdown('<div class="bloque"><h3>Resumen Ejecutivo</h3></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="card {clase}"><h4>{title}</h4><h2>{valor:,.2f}</h2></div>', unsafe_allow_html=True)
+    st.markdown('<div class="bloque"><h3>Resumen Ejecutivo</h3></div>', unsafe_allow_html=True)
 col1, col2, col3, col4 = st.columns(4)
 with col1: tarjeta("Operaciones", len(df_filtrado), "card1")
 with col2: tarjeta("Exportado (t)", df_filtrado['PESO NETO EXPORTADO'].sum(), "card2")
