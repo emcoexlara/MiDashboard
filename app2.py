@@ -136,13 +136,12 @@ df_map = df_filtrado.groupby('DESTINO')['Peso Neto Exportado'].sum().reset_index
 # Crear mapa de coropletas por país
 import plotly.express as px
 
-# Filtrar los destinos que tengan datos de exportación
-df_map = df[['DESTINO', 'Peso Neto Exportado']].groupby('DESTINO').sum().reset_index()
+import plotly.express as px
 
-# Título del mapa
-st.markdown(f"<h2 style='color:{COLOR_TITULO}; text-align:center;'>Mapa de Exportaciones por País</h2>", unsafe_allow_html=True)
+# Filtrar los datos que tengan DESTINO y Peso Neto Exportado
+df_map = df[['DESTINO', 'Peso Neto Exportado']].dropna()
 
-# Crear mapa de exportaciones por país
+# Crear el mapa de exportaciones por país
 fig_map = px.choropleth(
     df_map,
     locations="DESTINO",
@@ -154,13 +153,4 @@ fig_map = px.choropleth(
     template="plotly_white"
 )
 
-# Personalizar el diseño del mapa
-fig_map.update_layout(
-    margin={"r":0,"t":30,"l":0,"b":0},
-    paper_bgcolor="rgba(0,0,0,0)",
-    plot_bgcolor="rgba(0,0,0,0)",
-    font_color=COLOR_TITULO
-)
-
-# Mostrar el mapa en Streamlit
 st.plotly_chart(fig_map, use_container_width=True)
