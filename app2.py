@@ -230,7 +230,7 @@ with tabs[1]:
     st.plotly_chart(fig_exp, use_container_width=True)
     st.plotly_chart(fig_imp, use_container_width=True)
     with tabs[2]:
-    seccion_titulo("Destino")
+    seccion_titulo("Países")
     if 'destino' in df_filtrado.columns:
         df_p = df_filtrado.groupby("destino")[["peso total (t)"]].sum().reset_index()
         fig_p = px.bar(df_p, x="destino", y="peso total (t)", color_discrete_sequence=[COLOR1])
@@ -241,8 +241,11 @@ with tabs[3]:
     if 'latitud' in df_filtrado.columns and 'longitud' in df_filtrado.columns:
         fig_map = px.scatter_3d(
             df_filtrado,
-            x='longitud', y='latitud', z='peso total (t)',
-            color='peso total (t)', size='peso total (t)',
+            x='longitud',
+            y='latitud',
+            z='peso total (t)',
+            color='peso total (t)',
+            size='peso total (t)',
             color_continuous_scale='Viridis',
             labels={'peso total (t)': 'Toneladas'}
         )
