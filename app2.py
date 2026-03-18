@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from pathlib import Path
-from PIL import Image
 import base64
 
 # ------------------------------
@@ -16,7 +15,7 @@ ASSETS_DIR = BASE_DIR / "assets"
 st.set_page_config(
     page_title="Control Operacional Empresa de Comercio Exterior de Lara",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 # ------------------------------
@@ -80,33 +79,87 @@ if df.empty:
     st.stop()
 
 # ------------------------------
-# FILTROS: SOLO FECHA, DESTINO Y CONTENIDO
+# FILTROS EN SIDEBAR
 # ------------------------------
 st.sidebar.markdown("### Filtros")
 
 # Fecha
+fecha_seleccion = None
 if 'fecha' in df.columns:
     min_fecha, max_fecha = df['fecha'].min(), df['fecha'].max()
     fecha_seleccion = st.sidebar.date_input("Fecha", value=min_fecha, min_value=min_fecha, max_value=max_fecha)
-else:
-    fecha_seleccion = None
 
 # Destino
 destinos = df['destino'].unique() if 'destino' in df.columns else []
-destino_seleccion = st.sidebar.selectbox("Destino", ['Todos'] + list(destinos))
+destino_seleccion = st.sidebar.multiselect("Destino", destinos, default=destinos)
 
 # Contenido
 contenidos = df['contenido'].unique() if 'contenido' in df.columns else []
-contenido_seleccion = st.sidebar.selectbox("Contenido", ['Todos'] + list(contenidos))
+contenido_seleccion = st.sidebar.multiselect("Contenido", contenidos, default=contenidos)
 
-# Aplicar filtros
+# Pesos
+pnm_seleccion = (0,0)
+if 'peso neto manejado' in df.columns:
+    min_val, max_val = df['peso neto manejado'].min(), df['peso neto manejado'].max()
+    pnm_seleccion = st.sidebar.slider("Peso Neto Manejado (kg)", float(min_val), float(max_val), (float(min_val), float(max_val)))
+
+pne_seleccion = (0,0)
+if 'peso neto exportado' in df.columns:
+    min_val, max_val = df['peso neto exportado'].min(), df['peso neto exportado'].max()
+    pne_seleccion = st.sidebar.slider("Peso Neto Exportado (kg)", float(min_val), float(max_val), (float(min_val), float(max_val)))
+
+pni_seleccion = (0,0)
+if 'peso neto importado' in df.columns:
+    min_val, max_val = df['peso neto importado'].min(), df['peso neto importado'].max()
+    pni_seleccion = st.sidebar.slider("Peso Neto Importado (kg)", float(min_val), float(max_val), (float(min_val), float(max_val)))
+
+# Latitud
+lat_seleccion = (0,0)
+if 'latitud' in df.columns:
+    min_val, max_val = df['latitud'].min(), df['latitud'].max()
+    lat_seleccion = st.sidebar.slider("Latitud", float(min_val), float(max_val), (float(min_val), float(max_val)))
+    # Longitud
+lon_seleccion = (0,0)
+if 'longitud' in df.columns:
+    min_val, max_val = df['longitud'].min(), df['longitud'].max()
+    lon_seleccion = st.sidebar.slider("Longitud", float(min_val), float(max_val), (float(min_val), float(max_val)))
+
+# ------------------------------
+# APLICAR FILTROS
+# ------------------------------
 df_filtrado = df.copy()
+
 if fecha_seleccion and 'fecha' in df_filtrado.columns:
     df_filtrado = df_filtrado[df_filtrado['fecha'] == pd.to_datetime(fecha_seleccion)]
-if destino_seleccion != 'Todos':
-    df_filtrado = df_filtrado[df_filtrado['destino'] == destino_seleccion]
-if contenido_seleccion != 'Todos':
-    df_filtrado = df_filtrado[df_filtrado['contenido'] == contenido_seleccion]
+if destino_seleccion:
+    df_filtrado = df_filtrado[df_filtrado['destino'].isin(destino_seleccion)]
+if contenido_seleccion:
+    df_filtrado = df_filtrado[df_filtrado['contenido'].isin(contenido_seleccion)]
+if 'peso neto manejado' in df_filtrado.columns:
+    df_filtrado = df_filtrado[
+        (df_filtrado['peso neto manejado'] >= pnm_seleccion[0]) &
+        (df_filtrado['peso neto manejado'] <= pnm_seleccion[1])
+    ]
+if 'peso neto exportado' in df_filtrado.columns:
+    df_filtrado = df_filtrado[
+        (df_filtrado['peso neto exportado'] >= pne_seleccion[0]) &
+        (df_filtrado['peso neto exportado'] <= pne_seleccion[1])
+    ]
+if 'peso neto importado' in df_filtrado.columns:
+    df_filtrado = df_filtrado[
+        (df_filtrado['peso neto importado'] >= pni_seleccion[0]) &
+        (df_filtrado['peso neto importado'] <= pni_seleccion[1])
+    ]
+if 'latitud' in df_filtrado.columns:
+    df_filtrado = df_filtrado[
+        (df_filtrado['latitud'] >= lat_seleccion[0]) &
+        (df_filtrado['latitud'] <= lat_seleccion[1])
+    ]
+if 'longitud' in df_filtrado.columns:
+    df_filtrado = df_filtrado[
+        (df_filtrado['longitud'] >= lon_seleccion[0]) &
+        (df_filtrado['longitud'] <= lon_seleccion[1])
+    ]
 
 # ------------------------------
 # COLORES CORPORATIVOS
@@ -127,6 +180,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 # ------------------------------
 # KPIs
 # ------------------------------
@@ -175,8 +229,7 @@ with tabs[1]:
     fig_imp = px.histogram(df_filtrado, x="peso neto importado (t)", nbins=30, color_discrete_sequence=[COLOR3])
     st.plotly_chart(fig_exp, use_container_width=True)
     st.plotly_chart(fig_imp, use_container_width=True)
-
-with tabs[2]:
+    with tabs[2]:
     seccion_titulo("Países")
     if 'destino' in df_filtrado.columns:
         df_p = df_filtrado.groupby("destino")[["peso total (t)"]].sum().reset_index()
