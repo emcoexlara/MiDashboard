@@ -10,20 +10,23 @@ import os
 st.set_page_config(layout="wide", page_title="Dashboard Ejecutivo")
 
 # ------------------------------
-# RUTAS DE ARCHIVOS
+# RUTAS Y VALIDACIÓN DE ARCHIVOS
 # ------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # CORRECCIÓN: file en lugar de file
-
-def get_base64(file):
-    with open(file, "rb") as f:
-        return base64.b64encode(f.read()).decode()
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 fondo_path = os.path.join(BASE_DIR, "assets", "fondo.jpg")
 logo_path = os.path.join(BASE_DIR, "assets", "logo.png")
 excel_path = os.path.join(BASE_DIR, "data", "data.xlsx")
 
-fondo = get_base64(fondo_path)
-logo = get_base64(logo_path)
+def get_base64_safe(file_path):
+    if not os.path.exists(file_path):
+        st.error(f"Archivo no encontrado: {file_path}")
+        st.stop()
+    with open(file_path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+fondo = get_base64_safe(fondo_path)
+logo = get_base64_safe(logo_path)
 
 # ------------------------------
 # ESTILOS CSS
@@ -83,7 +86,12 @@ st.markdown('<div class="titulo-principal">Control Operacional Empresa de Comerc
 # ------------------------------
 # CARGA DE DATOS
 # ------------------------------
-df = pd.read_excel(excel_path)
+try:
+    df = pd.read_excel(excel_path)
+except Exception as e:
+    st.error(f"No se pudo cargar el archivo Excel: {e}")
+    st.stop()
+
 df.columns = df.columns.str.strip().str.upper()
 
 # Convertir fechas
@@ -100,7 +108,7 @@ df['PESO TOTAL'] = df.get('PESO NETO EXPORTADO',0).fillna(0) + df.get('PESO NETO
 df_filtrado = df.copy()
 
 # ------------------------------
-# FILTROS OPCIONALES
+# FILTROS EN SIDEBAR
 # ------------------------------
 st.sidebar.title("Filtros (Opcionales)")
 
