@@ -41,11 +41,19 @@ set_background("assets/fondo_comercio.jpg")
 # ------------------------------
 # LOGO
 # ------------------------------
-st.image("assets/logo_empresa.png", width=120)
-st.markdown(
-    f"<h1 style='color:{COLOR_TITULO}; text-align:center;'>Control Operacional de Comercio Exterior de Lara</h1>",
-    unsafe_allow_html=True
-)
+col_logo, col_titulo = st.columns([1, 5])
+
+with col_logo:
+    st.image("assets/logo_empresa.png", width=100)
+
+with col_titulo:
+    st.markdown(f"""
+    <div style='display:flex; align-items:center; height:100%;'>
+        <h1 style='color:{COLOR_TITULO}; margin:0;'>
+        Control Operacional de Comercio Exterior de Lara
+        </h1>
+    </div>
+    """, unsafe_allow_html=True)
 # ------------------------------
 # CARGA AUTOMÁTICA DE DATOS
 # ------------------------------
