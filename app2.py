@@ -42,7 +42,10 @@ set_background("assets/fondo_comercio.jpg")
 # LOGO
 # ------------------------------
 st.image("assets/logo_empresa.png", width=120)
-
+st.markdown(
+    f"<h1 style='color:{COLOR_TITULO}; text-align:center;'>Control Operacional de Comercio Exterior de Lara</h1>",
+    unsafe_allow_html=True
+)
 # ------------------------------
 # CARGA AUTOMÁTICA DE DATOS
 # ------------------------------
@@ -65,24 +68,42 @@ df['Peso Neto Importado'] = pd.to_numeric(df['Peso Neto Importado'], errors='coe
 df['Peso Neto Manejado'] = pd.to_numeric(df['Peso Neto Manejado'], errors='coerce').fillna(0)
 
 df_filtrado = df.copy()
-
 # ------------------------------
-# MÉTRICAS PRINCIPALES
-# ------------------------------
+# MÉTRICAS
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.markdown(f"<div style='background:{COLOR_CUADRO}; padding:15px; border-radius:10px; text-align:center;'>🚢<h4>Operaciones</h4><h2>{len(df_filtrado)}</h2></div>", unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style='background:{COLOR_TITULO}; padding:15px; border-radius:10px; text-align:center; color:white;'>
+    🚢<h4>Operaciones</h4>
+    <h2>{len(df_filtrado)}</h2>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col2:
-    st.markdown(f"<div style='background:{COLOR_CUADRO}; padding:15px; border-radius:10px; text-align:center;'>🌍<h4>Exportado</h4><h2>{df_filtrado['Peso Neto Exportado'].sum():,.2f}</h2></div>", unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style='background:{COLOR_TITULO}; padding:15px; border-radius:10px; text-align:center; color:white;'>
+    🌍<h4>Exportado</h4>
+    <h2>{df_filtrado['Peso Neto Exportado'].sum():,.2f}</h2>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col3:
-    st.markdown(f"<div style='background:{COLOR_CUADRO}; padding:15px; border-radius:10px; text-align:center;'>📦<h4>Importado</h4><h2>{df_filtrado['Peso Neto Importado'].sum():,.2f}</h2></div>", unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style='background:{COLOR_TITULO}; padding:15px; border-radius:10px; text-align:center; color:white;'>
+    📦<h4>Importado</h4>
+    <h2>{df_filtrado['Peso Neto Importado'].sum():,.2f}</h2>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col4:
     total = df_filtrado['Peso Neto Manejado'].sum()
-    st.markdown(f"<div style='background:{COLOR_CUADRO}; padding:15px; border-radius:10px; text-align:center;'>⚖️<h4>Total</h4><h2>{total:,.2f}</h2></div>", unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style='background:{COLOR_TITULO}; padding:15px; border-radius:10px; text-align:center; color:white;'>
+    ⚖️<h4>Total</h4>
+    <h2>{total:,.2f}</h2>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ------------------------------
 # GRÁFICO POR PAÍS
