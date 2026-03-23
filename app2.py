@@ -9,6 +9,10 @@ from pathlib import Path
 # CONFIGURACIÓN GENERAL
 # ------------------------------
 st.set_page_config(layout="wide")
+page_title="Control Operacional de Comercio Exterior de Lara",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 # ------------------------------
 # COLORES CORPORATIVOS
