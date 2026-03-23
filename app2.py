@@ -74,8 +74,34 @@ def load_data(file_path, last_modified):
 
 file_path = "data/datos.xlsx"
 last_modified = os.path.getmtime(file_path)
-df = load_data(file_path, last_modified)
+# ------------------------------
+# VALIDACIÓN DE COLUMNAS
+# ------------------------------
 
+# Limpiar nombres de columnas (elimina espacios ocultos)
+df.columns = df.columns.str.strip()
+
+# Columnas obligatorias
+columnas_requeridas = [
+    'DESTINO',
+    'Peso Neto Exportado',
+    'Peso Neto Importado',
+    'Peso Neto Manejado'
+]
+
+# Verificar si faltan columnas
+faltantes = [col for col in columnas_requeridas if col not in df.columns]
+
+if faltantes:
+    st.error(f"❌ Faltan columnas en el Excel: {faltantes}")
+    st.stop()
+
+# Convertir columnas a numérico (evita errores y ceros)
+for col in columnas_requeridas[1:]:
+    df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+
+# Crear df_filtrado correctamente
+df_filtrado = df.copy()
 # ------------------------------
 # LIMPIEZA DE DATOS
 # ------------------------------
