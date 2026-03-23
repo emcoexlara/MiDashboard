@@ -20,9 +20,9 @@ COLOR_ICONO = "#FFD700"   # dorado
 def get_base64(file_path):
     with open(file_path, "rb") as f:
         return base64.b64encode(f.read()).decode()
-from pathlib import Path
 
-BASE_DIR = Path(file).resolve().parent
+from pathlib import Path
+BASE_DIR = Path(__file__).resolve().parent
 logo_path = BASE_DIR / "assets/logo_empresa.png"
 st.image(logo_path, width=150)
 
