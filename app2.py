@@ -20,7 +20,35 @@ COLOR_ICONO = "#FFD700"   # dorado
 def get_base64(file_path):
     with open(file_path, "rb") as f:
         return base64.b64encode(f.read()).decode()
+# ------------------------------
+# MAPA DE EXPORTACIONES (LIMPIO)
+# ------------------------------
 
+import plotly.express as px
+
+# Agrupar datos por país
+df_map = df.groupby('DESTINO', as_index=False)['Peso Neto Exportado'].sum()
+
+# Crear mapa
+fig_map = px.choropleth(
+    data_frame=df_map,
+    locations="DESTINO",
+    locationmode="country names",
+    color="Peso Neto Exportado",
+    hover_name="DESTINO",
+    color_continuous_scale=px.colors.sequential.Plasma,
+    template="plotly_white"
+)
+
+# Ajustes visuales
+fig_map.update_layout(
+    margin={"r":0,"t":0,"l":0,"b":0},
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)"
+)
+
+# Mostrar mapa
+st.plotly_chart(fig_map, use_container_width=True)
 # Fondo y logo
 fondo_path = "assets/fondo_comercio.jpg"
 logo_path = "assets/logo_empresa.png"
