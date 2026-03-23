@@ -13,7 +13,7 @@ st.set_page_config(layout="wide")
 # ------------------------------
 # COLORES CORPORATIVOS
 # ------------------------------
-COLOR_TITULO = "#000000"
+COLOR_TITULO = "#1F4E79"
 COLOR_CUADRO = "#F2F2F2"
 COLOR_FONDO = "#f5f5f5"
 COLOR_CUADRO = "#003366"  # azul corporativo
