@@ -37,7 +37,17 @@ def set_background(image_file):
     """, unsafe_allow_html=True)
 
 set_background("assets/fondo_comercio.jpg")
-
+st.markdown("""
+<style>
+h1 {
+    font-size: 32px !important;
+    font-weight: 700 !important;
+}
+h4 {
+    margin-bottom: 5px;
+}
+</style>
+""", unsafe_allow_html=True)
 # ------------------------------
 # LOGO
 # ------------------------------
