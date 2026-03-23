@@ -25,19 +25,6 @@ def get_base64(file_path):
 fondo_path = "assets/fondo_comercio.jpg"
 logo_path = "assets/logo_empresa.png"
 
-if 'LATITUD' in df_filtrado.columns and 'LONGITUD' in df_filtrado.columns:
-    st.markdown("Mapa 3D de Exportaciones")
-    fig_map = px.scatter_3d(
-        df_filtrado,
-        x='LONGITUD',
-        y='LATITUD',
-        z='Peso Neto Exportado',
-        color='DESTINO'
-    )
-    st.plotly_chart(fig_map)
-else:
-    st.warning("Las columnas LONGITUD y LATITUD no existen en los datos para mostrar el mapa 3D.")
-
 st.image(logo_path, width=150)
 
 # --- CARGA DE DATOS ---
