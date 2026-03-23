@@ -72,9 +72,11 @@ df_filtrado = df.copy()
 # MÉTRICAS
 col1, col2, col3, col4 = st.columns(4)
 
+col1, col2, col3, col4 = st.columns(4)
+
 with col1:
     st.markdown(f"""
-    <div style='background:{COLOR_TITULO}; padding:15px; border-radius:10px; text-align:center; color:white;'>
+    <div style='background:{COLOR_TITULO}; padding:15px; border-radius:10px; text-align:center; color:white; box-shadow:0px 4px 10px rgba(0,0,0,0.2);'>
     🚢<h4>Operaciones</h4>
     <h2>{len(df_filtrado)}</h2>
     </div>
@@ -82,7 +84,7 @@ with col1:
 
 with col2:
     st.markdown(f"""
-    <div style='background:{COLOR_TITULO}; padding:15px; border-radius:10px; text-align:center; color:white;'>
+    <div style='background:{COLOR_TITULO}; padding:15px; border-radius:10px; text-align:center; color:white; box-shadow:0px 4px 10px rgba(0,0,0,0.2);'>
     🌍<h4>Exportado</h4>
     <h2>{df_filtrado['Peso Neto Exportado'].sum():,.2f}</h2>
     </div>
@@ -90,7 +92,7 @@ with col2:
 
 with col3:
     st.markdown(f"""
-    <div style='background:{COLOR_TITULO}; padding:15px; border-radius:10px; text-align:center; color:white;'>
+    <div style='background:{COLOR_TITULO}; padding:15px; border-radius:10px; text-align:center; color:white; box-shadow:0px 4px 10px rgba(0,0,0,0.2);'>
     📦<h4>Importado</h4>
     <h2>{df_filtrado['Peso Neto Importado'].sum():,.2f}</h2>
     </div>
@@ -99,7 +101,7 @@ with col3:
 with col4:
     total = df_filtrado['Peso Neto Manejado'].sum()
     st.markdown(f"""
-    <div style='background:{COLOR_TITULO}; padding:15px; border-radius:10px; text-align:center; color:white;'>
+    <div style='background:{COLOR_TITULO}; padding:15px; border-radius:10px; text-align:center; color:white; box-shadow:0px 4px 10px rgba(0,0,0,0.2);'>
     ⚖️<h4>Total</h4>
     <h2>{total:,.2f}</h2>
     </div>
