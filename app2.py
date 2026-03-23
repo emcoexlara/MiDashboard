@@ -25,7 +25,18 @@ def get_base64(file_path):
 fondo_path = "assets/fondo_comercio.jpg"
 logo_path = "assets/logo_empresa.png"
 
-# st.markdown(f"<h2 style='color:{COLOR_TITULO}; text-align:center;'>Mapa 3D de Exportaciones</h2>", unsafe_allow_html=True)
+# --- MAPA 3D ELIMINADO ---
+# st.markdown("Mapa 3D de Exportaciones")
+# df_map = df_filtrado.dropna(subset=['LATITUD', 'LONGITUD'])
+# fig_map = px.scatter_3d(
+#     df_map,
+#     x='LONGITUD',
+#     y='LATITUD',
+#     z='Peso Neto Exportado',
+#     color='DESTINO',
+#     size='Peso Neto Exportado'
+# )
+# st.plotly_chart(fig_map)
 
 st.image(logo_path, width=150)
 
