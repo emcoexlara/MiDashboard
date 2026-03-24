@@ -178,15 +178,52 @@ with col4:
     <h1 style='margin:5px 0 0 0;'>{total:,.0f}</h1>
     </div>
     """, unsafe_allow_html=True)
+import plotly.express as px
 
+TEMPLATE_PRO = dict(
+    layout=dict(
+        font=dict(family="Arial", size=14, color="black"),
+        title=dict(font=dict(size=20, color="black")),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+    )
+)
 # ------------------------------
 # GRÁFICO POR PAÍS
 # ------------------------------
-df_pais = df_filtrado.groupby('DESTINO')['Peso Neto Exportado'].sum().reset_index()
+df_paises = df_filtrado.groupby('DESTINO')['Peso Neto Exportado'].sum().reset_index()
 
-fig1 = px.bar(df_pais, x='DESTINO', y='Peso Neto Exportado', title="Exportaciones por País")
+fig1 = px.bar(
+    df_paises,
+    x='DESTINO',
+    y='Peso Neto Exportado',
+    text='Peso Neto Exportado'
+)
+
+fig1.update_traces(
+    texttemplate='%{text:,.0f}',
+    textposition='outside',
+    marker_line_width=1.5
+)
+
+fig1.update_layout(
+    TEMPLATE_PRO["layout"],
+    title="Exportaciones por País",
+    title_x=0.5,
+    font=dict(size=14, family="Arial Black"),
+)
+
+# Marca de agua
+fig1.add_annotation(
+    text="COMERCIO EXTERIOR",
+    xref="paper", yref="paper",
+    x=0.5, y=0.5,
+    showarrow=False,
+    font=dict(size=40, color="rgba(0,0,0,0.05)"),
+    align="center"
+)
+
 st.plotly_chart(fig1, use_container_width=True)
-
 # ------------------------------
 # CONTENEDORES VS TONELADAS
 # ------------------------------
@@ -194,15 +231,30 @@ if 'CONTENIDO' in df_filtrado.columns and 'LLENOS RECIBIDOS (EXPORTADOS)' in df_
 
     df_cont = df_filtrado.groupby('CONTENIDO')[['LLENOS RECIBIDOS (EXPORTADOS)', 'Peso Neto Exportado']].sum().reset_index()
 
-    fig2 = px.bar(
-        df_cont,
-        x='CONTENIDO',
-        y=['LLENOS RECIBIDOS (EXPORTADOS)', 'Peso Neto Exportado'],
-        barmode='group',
-        title="Contenedores vs Toneladas"
-    )
-    st.plotly_chart(fig2, use_container_width=True)
+fig2 = px.bar(
+    df_cont,
+    x='CONTENIDO',
+    y=['LLENOS RECIBIDOS (EXPORTADOS)', 'Peso Neto Exportado'],
+    barmode='group'
+)
 
+fig2.update_layout(
+    TEMPLATE_PRO["layout"],
+    title="Contenedores vs Toneladas",
+    title_x=0.5,
+    font=dict(size=14, family="Arial Black"),
+)
+
+# Marca de agua
+fig2.add_annotation(
+    text="LOGÍSTICA INTERNACIONAL",
+    xref="paper", yref="paper",
+    x=0.5, y=0.5,
+    showarrow=False,
+    font=dict(size=40, color="rgba(0,0,0,0.05)")
+)
+
+st.plotly_chart(fig2, use_container_width=True)
 # ------------------------------
 # MAPA (SIN 3D - CORREGIDO)
 # ------------------------------
