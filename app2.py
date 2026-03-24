@@ -112,7 +112,6 @@ columnas_requeridas = [
     'Peso Neto Importado',
     'Peso Neto Manejado'
 ]
-
 # Verificar si faltan columnas
 faltantes = [col for col in columnas_requeridas if col not in df.columns]
 
@@ -188,6 +187,22 @@ TEMPLATE_PRO = dict(
         paper_bgcolor="rgba(0,0,0,0)",
     )
 )
+def contenedor_blur(fig):
+    st.markdown("""
+    <div style="
+        background: rgba(255,255,255,0.75);
+        backdrop-filter: blur(6px);
+        padding: 15px;
+        border-radius: 15px;
+        box-shadow: 0px 4px 15px rgba(0,0,0,0.2);
+        margin-bottom: 20px;
+    ">
+    """, unsafe_allow_html=True)
+
+    contenedor_blur(fig1)
+    contenedor_blur(fig2)
+
+    st.markdown("</div>", unsafe_allow_html=True)
 # ------------------------------
 # GRÁFICO POR PAÍS
 # ------------------------------
@@ -275,4 +290,4 @@ fig_map.update_layout(
     plot_bgcolor="rgba(0,0,0,0)"
 )
 
-st.plotly_chart(fig_map, use_container_width=True)
+contenedor_blur(fig_map)
