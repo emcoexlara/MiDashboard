@@ -282,30 +282,66 @@ fig2.add_annotation(
 fig2 = aplicar_fondo_blanco(fig2)
 st.plotly_chart(fig2, use_container_width=True)
 # ------------------------------
-# MAPA PROFESIONAL (CORREGIDO)
+# MAPA DE EXPORTACIONES (PROFESIONAL)
 # ------------------------------
 
-df_map = df_filtrado.groupby('DESTINO')['Peso Neto Exportado'].sum().reset_index()
+import plotly.express as px
 
+# Agrupar datos por país
+df_map = df_filtrado.groupby('DESTINO', as_index=False)['Peso Neto Exportado'].sum()
+
+# Crear mapa
 fig_map = px.scatter_geo(
     df_map,
     locations='DESTINO',
     locationmode='country names',
     size='Peso Neto Exportado',
-    projection="natural earth",
-    title="Mapa de Exportaciones por País"
+    hover_name='DESTINO',
+    size_max=40,
+    projection='natural earth'
 )
 
+# Diseño profesional
 fig_map.update_layout(
-    title_x=0.5,
-    font=dict(family="Arial Black", size=14, color="black"),
+
+    title=dict(
+        text="Mapa de Exportaciones por País",
+        x=0.5,
+        font=dict(
+            family="Arial Black",
+            size=20,
+            color="black"
+        )
+    ),
+
+    # Fondo blanco elegante (SIN ERROR)
+    paper_bgcolor="rgba(255,255,255,0.95)",
+
     geo=dict(
-        bgcolor='rgba(0,0,0,0)',  # 🔥 IMPORTANTE: transparente
+        bgcolor="rgba(255,255,255,0.95)",  # 🔥 clave para evitar franjas
         showland=True,
-        landcolor="#EAEAEA",
+        landcolor="#F2F3F4",
         showocean=True,
-        oceancolor="#D6EAF8"
+        oceancolor="#D6EAF8",
+        showcountries=True,
+        countrycolor="#A6ACAF"
     )
 )
 
+# Marca de agua (opcional profesional)
+fig_map.add_annotation(
+    text="COMERCIO EXTERIOR",
+    x=0.5,
+    y=0.5,
+    xref="paper",
+    yref="paper",
+    showarrow=False,
+    font=dict(
+        size=40,
+        color="rgba(0,0,0,0.05)"
+    )
+)
+
+# Mostrar mapa
 st.plotly_chart(fig_map, use_container_width=True)
+
