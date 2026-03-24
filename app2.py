@@ -144,34 +144,38 @@ col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     st.markdown(f"""
-    <div style='background:{COLOR_TITULO}; padding:15px; border-radius:10px; text-align:center; color:white; box-shadow:0px 4px 10px rgba(0,0,0,0.2);'>
-    🚢<h4>Operaciones</h4>
-    <h2>{len(df_filtrado)}</h2>
+    <div style='background:{COLOR_TITULO}; padding:20px; border-radius:12px;
+    text-align:center; color:white; border:3px solid #00BFFF; box-shadow:0px 4px 12px rgba(0,0,0,0.25);'>
+    🚢<h3 style='margin:0;'>Operaciones</h3>
+    <h1 style='margin:5px 0 0 0;'>{len(df_filtrado)}</h1>
     </div>
     """, unsafe_allow_html=True)
 
 with col2:
     st.markdown(f"""
-    <div style='background:{COLOR_TITULO}; padding:15px; border-radius:10px; text-align:center; color:white; box-shadow:0px 4px 10px rgba(0,0,0,0.2);'>
-    🌍<h4>Exportado</h4>
-    <h2>{df_filtrado['Peso Neto Exportado'].sum():,.2f}</h2>
+    <div style='background:{COLOR_TITULO}; padding:20px; border-radius:12px;
+    text-align:center; color:white; border:3px solid #28A745; box-shadow:0px 4px 12px rgba(0,0,0,0.25);'>
+    🌍<h3 style='margin:0;'>Exportado</h3>
+    <h1 style='margin:5px 0 0 0;'>{df_filtrado['Peso Neto Exportado'].sum():,.0f}</h1>
     </div>
     """, unsafe_allow_html=True)
 
 with col3:
     st.markdown(f"""
-    <div style='background:{COLOR_TITULO}; padding:15px; border-radius:10px; text-align:center; color:white; box-shadow:0px 4px 10px rgba(0,0,0,0.2);'>
-    📦<h4>Importado</h4>
-    <h2>{df_filtrado['Peso Neto Importado'].sum():,.2f}</h2>
+    <div style='background:{COLOR_TITULO}; padding:20px; border-radius:12px;
+    text-align:center; color:white; border:3px solid #FFC107; box-shadow:0px 4px 12px rgba(0,0,0,0.25);'>
+    📦<h3 style='margin:0;'>Importado</h3>
+    <h1 style='margin:5px 0 0 0;'>{df_filtrado['Peso Neto Importado'].sum():,.0f}</h1>
     </div>
     """, unsafe_allow_html=True)
 
 with col4:
     total = df_filtrado['Peso Neto Manejado'].sum()
     st.markdown(f"""
-    <div style='background:{COLOR_TITULO}; padding:15px; border-radius:10px; text-align:center; color:white; box-shadow:0px 4px 10px rgba(0,0,0,0.2);'>
-    ⚖️<h4>Total</h4>
-    <h2>{total:,.2f}</h2>
+    <div style='background:{COLOR_TITULO}; padding:20px; border-radius:12px;
+    text-align:center; color:white; border:3px solid #FF5733; box-shadow:0px 4px 12px rgba(0,0,0,0.25);'>
+    ⚖️<h3 style='margin:0;'>Total</h3>
+    <h1 style='margin:5px 0 0 0;'>{total:,.0f}</h1>
     </div>
     """, unsafe_allow_html=True)
 
