@@ -187,6 +187,36 @@ if destinos:
 # Tipo de carga
 if tipos_carga:
     df_filtrado = df_filtrado[df_filtrado['TIPO DE CARGA'].isin(tipos_carga)]
+    # ------------------------------
+# KPI COMPARATIVO (PERIODO)
+# ------------------------------
+
+df_filtrado['FECHA'] = pd.to_datetime(df_filtrado['FECHA'], errors='coerce')
+
+# Periodo actual
+total_exportado = df_filtrado['Peso Neto Exportado'].sum()
+total_importado = df_filtrado['Peso Neto Importado'].sum()
+total_general = df_filtrado['Peso Neto Manejado'].sum()
+
+# Periodo anterior (dividir dataset en dos mitades)
+mitad = len(df_filtrado) // 2
+
+df_anterior = df_filtrado.iloc[:mitad]
+df_actual = df_filtrado.iloc[mitad:]
+
+exp_anterior = df_anterior['Peso Neto Exportado'].sum()
+imp_anterior = df_anterior['Peso Neto Importado'].sum()
+tot_anterior = df_anterior['Peso Neto Manejado'].sum()
+
+# Función variación %
+def variacion(actual, anterior):
+    if anterior == 0:
+        return 0
+    return ((actual - anterior) / anterior) * 100
+
+var_exp = variacion(total_exportado, exp_anterior)
+var_imp = variacion(total_importado, imp_anterior)
+var_tot = variacion(total_general, tot_anterior)
 # ------------------------------
 # MÉTRICAS
 col1, col2, col3, col4 = st.columns(4)
