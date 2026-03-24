@@ -217,6 +217,14 @@ def variacion(actual, anterior):
 var_exp = variacion(total_exportado, exp_anterior)
 var_imp = variacion(total_importado, imp_anterior)
 var_tot = variacion(total_general, tot_anterior)
+
+def color_variacion(valor):
+    if valor > 0:
+        return "green", "▲"
+    elif valor < 0:
+        return "red", "▼"
+    else:
+        return "gray", "■"
 # ------------------------------
 # MÉTRICAS
 col1, col2, col3, col4 = st.columns(4)
