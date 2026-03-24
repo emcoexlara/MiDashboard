@@ -136,6 +136,58 @@ df['Peso Neto Manejado'] = pd.to_numeric(df['Peso Neto Manejado'], errors='coerc
 
 df_filtrado = df.copy()
 # ------------------------------
+# FILTROS DINÁMICOS
+# ------------------------------
+
+st.sidebar.markdown("## 🔎 Filtros")
+
+# Asegurar formato de fecha
+df['FECHA'] = pd.to_datetime(df['FECHA'], errors='coerce')
+
+# FILTRO POR FECHA
+fecha_min = df['FECHA'].min()
+fecha_max = df['FECHA'].max()
+
+rango_fecha = st.sidebar.date_input(
+    "Rango de Fecha",
+    [fecha_min, fecha_max]
+)
+
+# FILTRO DESTINO
+destinos = st.sidebar.multiselect(
+    "Destino",
+    options=sorted(df['DESTINO'].dropna().unique()),
+    default=sorted(df['DESTINO'].dropna().unique())
+)
+
+# FILTRO TIPO DE CARGA
+tipos_carga = st.sidebar.multiselect(
+    "Tipo de Carga",
+    options=sorted(df['TIPO DE CARGA'].dropna().unique()),
+    default=sorted(df['TIPO DE CARGA'].dropna().unique())
+)
+
+# ------------------------------
+# APLICAR FILTROS
+# ------------------------------
+
+df_filtrado = df.copy()
+
+# Fecha
+if len(rango_fecha) == 2:
+    df_filtrado = df_filtrado[
+        (df_filtrado['FECHA'] >= pd.to_datetime(rango_fecha[0])) &
+        (df_filtrado['FECHA'] <= pd.to_datetime(rango_fecha[1]))
+    ]
+
+# Destino
+if destinos:
+    df_filtrado = df_filtrado[df_filtrado['DESTINO'].isin(destinos)]
+
+# Tipo de carga
+if tipos_carga:
+    df_filtrado = df_filtrado[df_filtrado['TIPO DE CARGA'].isin(tipos_carga)]
+# ------------------------------
 # MÉTRICAS
 col1, col2, col3, col4 = st.columns(4)
 
