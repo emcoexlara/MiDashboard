@@ -353,6 +353,4 @@ fig_map.add_annotation(
 
 # Mostrar
 st.plotly_chart(fig_map, use_container_width=True)
-# Mostrar mapa
-st.plotly_chart(fig_map, use_container_width=True)
 
