@@ -207,7 +207,16 @@ def contenedor_blur(fig):
 # GRÁFICO POR PAÍS
 # ------------------------------
 df_paises = df_filtrado.groupby('DESTINO')['Peso Neto Exportado'].sum().reset_index()
-
+# ------------------------------
+# ESTILO FONDO BLANCO DIFUMINADO
+# ------------------------------
+def aplicar_fondo_blanco(fig):
+    fig.update_layout(
+        paper_bgcolor="rgba(255,255,255,0.90)",  # fondo general
+        plot_bgcolor="rgba(255,255,255,0.80)",   # área del gráfico
+        font=dict(family="Arial Black", size=14, color="black")
+    )
+    return fig
 fig1 = px.bar(
     df_paises,
     x='DESTINO',
@@ -238,6 +247,7 @@ fig1.add_annotation(
     align="center"
 )
 
+fig1 = aplicar_fondo_blanco(fig1)
 st.plotly_chart(fig1, use_container_width=True)
 # ------------------------------
 # CONTENEDORES VS TONELADAS
@@ -269,6 +279,7 @@ fig2.add_annotation(
     font=dict(size=40, color="rgba(0,0,0,0.05)")
 )
 
+fig2 = aplicar_fondo_blanco(fig2)
 st.plotly_chart(fig2, use_container_width=True)
 # ------------------------------
 # MAPA (SIN 3D - CORREGIDO)
@@ -291,3 +302,5 @@ fig_map.update_layout(
 )
 
 contenedor_blur(fig_map)
+fig_map = aplicar_fondo_blanco(fig_map)
+st.plotly_chart(fig_map, use_container_width=True)
