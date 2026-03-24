@@ -282,25 +282,30 @@ fig2.add_annotation(
 fig2 = aplicar_fondo_blanco(fig2)
 st.plotly_chart(fig2, use_container_width=True)
 # ------------------------------
-# MAPA (SIN 3D - CORREGIDO)
+# MAPA PROFESIONAL (CORREGIDO)
 # ------------------------------
-df_map = df_filtrado.groupby('DESTINO', as_index=False)['Peso Neto Exportado'].sum()
-fig_map = px.choropleth(
-    data_frame=df_map,
-    locations="DESTINO",
-    locationmode="country names",
-    color="Peso Neto Exportado",
-    hover_name="DESTINO",
-    color_continuous_scale=px.colors.sequential.Plasma,
-    template="plotly_white"
+
+df_map = df_filtrado.groupby('DESTINO')['Peso Neto Exportado'].sum().reset_index()
+
+fig_map = px.scatter_geo(
+    df_map,
+    locations='DESTINO',
+    locationmode='country names',
+    size='Peso Neto Exportado',
+    projection="natural earth",
+    title="Mapa de Exportaciones por País"
 )
 
 fig_map.update_layout(
-    margin={"r":0,"t":0,"l":0,"b":0},
-    paper_bgcolor="rgba(0,0,0,0)",
-    plot_bgcolor="rgba(0,0,0,0)"
+    title_x=0.5,
+    font=dict(family="Arial Black", size=14, color="black"),
+    geo=dict(
+        bgcolor='rgba(0,0,0,0)',  # 🔥 IMPORTANTE: transparente
+        showland=True,
+        landcolor="#EAEAEA",
+        showocean=True,
+        oceancolor="#D6EAF8"
+    )
 )
 
-contenedor_blur(fig_map)
-fig_map = aplicar_fondo_blanco(fig_map)
 st.plotly_chart(fig_map, use_container_width=True)
