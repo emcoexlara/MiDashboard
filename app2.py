@@ -282,13 +282,16 @@ fig2.add_annotation(
 fig2 = aplicar_fondo_blanco(fig2)
 st.plotly_chart(fig2, use_container_width=True)
 # ------------------------------
-# MAPA DE EXPORTACIONES (PROFESIONAL)
+# MAPA AVANZADO DE EXPORTACIONES
 # ------------------------------
 
 import plotly.express as px
 
-# Agrupar datos por país
-df_map = df_filtrado.groupby('DESTINO', as_index=False)['Peso Neto Exportado'].sum()
+# Agrupar datos por destino y tipo de carga
+df_map = df_filtrado.groupby(
+    ['DESTINO', 'TIPO DE CARGA'], 
+    as_index=False
+)['Peso Neto Exportado'].sum()
 
 # Crear mapa
 fig_map = px.scatter_geo(
@@ -296,8 +299,9 @@ fig_map = px.scatter_geo(
     locations='DESTINO',
     locationmode='country names',
     size='Peso Neto Exportado',
+    color='TIPO DE CARGA',  # 🔥 diferenciación clave
     hover_name='DESTINO',
-    size_max=40,
+    size_max=45,
     projection='natural earth'
 )
 
@@ -305,7 +309,7 @@ fig_map = px.scatter_geo(
 fig_map.update_layout(
 
     title=dict(
-        text="Mapa de Exportaciones por País",
+        text="Mapa de Exportaciones por País y Tipo de Carga",
         x=0.5,
         font=dict(
             family="Arial Black",
@@ -314,23 +318,28 @@ fig_map.update_layout(
         )
     ),
 
-    # Fondo blanco elegante (SIN ERROR)
     paper_bgcolor="rgba(255,255,255,0.95)",
 
     geo=dict(
-        bgcolor="rgba(255,255,255,0.95)",  # 🔥 clave para evitar franjas
+        bgcolor="rgba(255,255,255,0.95)",
         showland=True,
-        landcolor="#F2F3F4",
+        landcolor="#F4F6F7",
         showocean=True,
         oceancolor="#D6EAF8",
         showcountries=True,
         countrycolor="#A6ACAF"
+    ),
+
+    legend=dict(
+        title="Tipo de Carga",
+        orientation="h",
+        y=-0.1
     )
 )
 
-# Marca de agua (opcional profesional)
+# Marca de agua
 fig_map.add_annotation(
-    text="COMERCIO EXTERIOR",
+    text="EXPORTACIONES",
     x=0.5,
     y=0.5,
     xref="paper",
@@ -342,6 +351,8 @@ fig_map.add_annotation(
     )
 )
 
+# Mostrar
+st.plotly_chart(fig_map, use_container_width=True)
 # Mostrar mapa
 st.plotly_chart(fig_map, use_container_width=True)
 
