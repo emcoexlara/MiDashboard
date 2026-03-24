@@ -187,28 +187,47 @@ if destinos:
 # Tipo de carga
 if tipos_carga:
     df_filtrado = df_filtrado[df_filtrado['TIPO DE CARGA'].isin(tipos_carga)]
-    # ------------------------------
-# KPI COMPARATIVO (PERIODO)
+  # ------------------------------
+# KPI + SEMÁFORO EMPRESARIAL
 # ------------------------------
 
+# Asegurar formato fecha
 df_filtrado['FECHA'] = pd.to_datetime(df_filtrado['FECHA'], errors='coerce')
 
-# Periodo actual
-total_exportado = df_filtrado['Peso Neto Exportado'].sum()
-total_importado = df_filtrado['Peso Neto Importado'].sum()
-total_general = df_filtrado['Peso Neto Manejado'].sum()
+# Crear columna mes
+df_filtrado['MES'] = df_filtrado['FECHA'].dt.to_period('M')
 
-# Periodo anterior (dividir dataset en dos mitades)
-mitad = len(df_filtrado) // 2
+# Agrupar por mes
+df_mes = df_filtrado.groupby('MES').agg({
+    'Peso Neto Exportado': 'sum',
+    'Peso Neto Importado': 'sum',
+    'Peso Neto Manejado': 'sum'
+}).reset_index()
 
-df_anterior = df_filtrado.iloc[:mitad]
-df_actual = df_filtrado.iloc[mitad:]
+df_mes = df_mes.sort_values('MES')
 
-exp_anterior = df_anterior['Peso Neto Exportado'].sum()
-imp_anterior = df_anterior['Peso Neto Importado'].sum()
-tot_anterior = df_anterior['Peso Neto Manejado'].sum()
+# Validación de períodos
+if len(df_mes) >= 2:
+    actual = df_mes.iloc[-1]
+    anterior = df_mes.iloc[-2]
 
-# Función variación %
+    total_exportado = actual['Peso Neto Exportado']
+    total_importado = actual['Peso Neto Importado']
+    total_general = actual['Peso Neto Manejado']
+
+    exp_anterior = anterior['Peso Neto Exportado']
+    imp_anterior = anterior['Peso Neto Importado']
+    tot_anterior = anterior['Peso Neto Manejado']
+else:
+    total_exportado = df_filtrado['Peso Neto Exportado'].sum()
+    total_importado = df_filtrado['Peso Neto Importado'].sum()
+    total_general = df_filtrado['Peso Neto Manejado'].sum()
+
+    exp_anterior = 0
+    imp_anterior = 0
+    tot_anterior = 0
+
+# Función variación
 def variacion(actual, anterior):
     if anterior == 0:
         return 0
@@ -218,13 +237,68 @@ var_exp = variacion(total_exportado, exp_anterior)
 var_imp = variacion(total_importado, imp_anterior)
 var_tot = variacion(total_general, tot_anterior)
 
-def color_variacion(valor):
-    if valor > 0:
-        return "green", "▲"
-    elif valor < 0:
-        return "red", "▼"
+# ------------------------------
+# SEMÁFORO
+# ------------------------------
+def semaforo(valor):
+    if valor > 5:
+        return "#28A745", "🟢", "Crecimiento"
+    elif valor >= -5:
+        return "#FFC107", "🟡", "Estable"
     else:
-        return "gray", "■"
+        return "#DC3545", "🔴", "Caída"
+
+color_exp, icon_exp, estado_exp = semaforo(var_exp)
+color_imp, icon_imp, estado_imp = semaforo(var_imp)
+color_tot, icon_tot, estado_tot = semaforo(var_tot)
+
+# ------------------------------
+# KPI VISUAL
+# ------------------------------
+
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    st.markdown(f"""
+    <div style='background:{COLOR_TITULO}; padding:20px; border-radius:12px;
+    text-align:center; color:white; border:3px solid #00BFFF;'>
+    🚢<h3>Operaciones</h3>
+    <h1>{len(df_filtrado)}</h1>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col2:
+    st.markdown(f"""
+    <div style='background:{COLOR_TITULO}; padding:20px; border-radius:12px;
+    text-align:center; color:white; border:3px solid {color_exp};'>
+    🌍<h3>Exportado</h3>
+    <h1>{int(total_exportado):,}</h1>
+    <p style='font-size:16px; color:{color_exp};'><b>{icon_exp} {var_exp:.1f}%</b></p>
+    <p style='font-size:14px; color:{color_exp};'>{estado_exp}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+    st.markdown(f"""
+    <div style='background:{COLOR_TITULO}; padding:20px; border-radius:12px;
+    text-align:center; color:white; border:3px solid {color_imp};'>
+    📦<h3>Importado</h3>
+    <h1>{int(total_importado):,}</h1>
+    <p style='font-size:16px; color:{color_imp};'><b>{icon_imp} {var_imp:.1f}%</b></p>
+    <p style='font-size:14px; color:{color_imp};'>{estado_imp}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col4:
+    st.markdown(f"""
+    <div style='background:{COLOR_TITULO}; padding:20px; border-radius:12px;
+    text-align:center; color:white; border:3px solid {color_tot};'>
+    ⚖️<h3>Total</h3>
+    <h1>{int(total_general):,}</h1>
+    <p style='font-size:16px; color:{color_tot};'><b>{icon_tot} {var_tot:.1f}%</b></p>
+    <p style='font-size:14px; color:{color_tot};'>{estado_tot}</p>
+    </div>
+    """, unsafe_allow_html=True)
 # ------------------------------
 # MÉTRICAS
 col1, col2, col3, col4 = st.columns(4)
