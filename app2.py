@@ -4,7 +4,19 @@ import plotly.express as px
 import base64
 import os
 from pathlib import Path
+import pandas as pd
+import streamlit as st
 
+# Cargar archivo
+df = pd.read_excel("tu_archivo.xlsx")
+
+# Limpiar columnas
+df.columns = df.columns.str.strip()
+
+# Convertir a numérico (CRÍTICO)
+df['Peso Neto Exportado'] = pd.to_numeric(df['Peso Neto Exportado'], errors='coerce')
+df['Peso Neto Importado'] = pd.to_numeric(df['Peso Neto Importado'], errors='coerce')
+df['Peso Neto Manejado'] = pd.to_numeric(df['Peso Neto Manejado'], errors='coerce')
 # ------------------------------
 # CONFIGURACIÓN GENERAL
 # ------------------------------
@@ -183,7 +195,17 @@ tipos_carga = st.sidebar.multiselect(
     options=sorted(df['TIPO DE CARGA'].dropna().unique()),
     default=sorted(df['TIPO DE CARGA'].dropna().unique())
 )
+df_filtrado = df.copy()
 
+# Ejemplo de filtro
+if 'DESTINO' in df.columns:
+    destinos = st.sidebar.multiselect(
+        "Destino",
+        df['DESTINO'].dropna().unique()
+    )
+
+    if destinos:
+        df_filtrado = df_filtrado[df_filtrado['DESTINO'].isin(destinos)]
 # ------------------------------
 # APLICAR FILTROS
 # ------------------------------
@@ -224,19 +246,15 @@ df['id_unico'] = df['DESTINO'].astype(str) + "_" + df['FECHA'].astype(str) + "_"
 df = df.drop_duplicates(subset=['id_unico'])
 
 # =========================
-# KPI FINAL (DISEÑO + DATOS EXCEL)
+# KPI (DATA COMPLETA)
 # =========================
 
-# Asegurar columnas limpias
-df.columns = df.columns.str.strip()
-
-# Datos EXACTOS del Excel
 total_operaciones = df['N° DE OPERACIÓN'].count()
 total_exportado = int(df['Peso Neto Exportado'].sum())
 total_importado = int(df['Peso Neto Importado'].sum())
 total_total = int(df['Peso Neto Manejado'].sum())
 
-# ESTILO (NO TOCAR)
+# Estilo
 st.markdown("""
 <style>
 .kpi-box {
@@ -261,7 +279,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# COLUMNAS (UNA SOLA VEZ)
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
