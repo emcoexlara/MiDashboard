@@ -4,36 +4,6 @@ import plotly.express as px
 import base64
 import os
 from pathlib import Path
-# Configuración para mostrar todo el DataFrame
-pd.set_option('display.max_rows', None)
-pd.set_option('display.max_columns', None)
-pd.set_option('display.width', 1000)
-
-st.title("Dashboard de Comercio Exterior")
-
-# Ruta del archivo Excel
-archivo = "tu_archivo.xlsx"
-
-# Verificar si existe el archivo
-if os.path.exists(archivo):
-    df = pd.read_excel(archivo)
-    st.subheader("Datos completos")
-    st.dataframe(df)  # Muestra toda la data
-
-    # Resumen por tipo de operación
-    if "Tipo" in df.columns and "Toneladas" in df.columns:
-        total_import = df[df["Tipo"]=="Importacion"]["Toneladas"].sum()
-        total_export = df[df["Tipo"]=="Exportacion"]["Toneladas"].sum()
-        total_general = total_import + total_export
-
-        st.subheader("Resumen de Toneladas")
-        st.metric("Total Importado", total_import)
-        st.metric("Total Exportado", total_export)
-        st.metric("Total General", total_general)
-    else:
-        st.warning("No se encontraron las columnas 'Tipo' y 'Toneladas' para el resumen.")
-else:
-    st.error(f"No se encontró el archivo: {archivo}")
 # Cargar archivo
 df = pd.read_excel("datos.xlsx")
 
