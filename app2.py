@@ -188,12 +188,12 @@ if destinos:
 if tipos_carga:
     df_filtrado = df_filtrado[df_filtrado['TIPO DE CARGA'].isin(tipos_carga)]
 # =========================
-# KPI ÚNICO (NO DUPLICAR)
+# KPI ÚNICO GARANTIZADO
 # =========================
 
-kpi_renderizado = False
+if "kpi_mostrado" not in st.session_state:
 
-if not kpi_renderizado:
+    st.session_state.kpi_mostrado = True
 
     total_exportado = df_filtrado['Peso Neto Exportado'].sum()
     total_importado = df_filtrado['Peso Neto Importado'].sum()
@@ -256,8 +256,6 @@ if not kpi_renderizado:
             <div class="kpi-value">{int(total_general):,}</div>
         </div>
         """, unsafe_allow_html=True)
-
-    kpi_renderizado = True
 # ------------------------------
 # MÉTRICAS
 # ------------------------------
