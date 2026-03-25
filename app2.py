@@ -223,94 +223,61 @@ df_filtrado = st.session_state.df_global.copy()
 df['id_unico'] = df['DESTINO'].astype(str) + "_" + df['FECHA'].astype(str) + "_" + df['TIPO DE CARGA'].astype(str)
 df = df.drop_duplicates(subset=['id_unico'])
 
-# ------------------------------
-# KPI PROFESIONAL GLASSMORPHISM (ÚNICO BLOQUE)
-# ------------------------------
-kpi_placeholder = st.container()
+# =========================
+# KPI DESDE EXCEL (VALOR REAL)
+# =========================
 
-with kpi_placeholder:
-    col1, col2, col3, col4 = st.columns(4)
+# Asegurar nombres correctos de columnas
+df.columns = df.columns.str.strip()
 
-    total_exportado = df['Peso Neto Exportado'].sum()
-    total_importado = df['Peso Neto Importado'].sum()
-    total_general = df['Peso Neto Manejado'].sum()
+# KPIs directos del Excel (sin distorsión)
+total_operaciones = df['N° DE OPERACIÓN'].count()
+total_exportado = df['Peso Neto Exportado'].sum()
+total_importado = df['Peso Neto Importado'].sum()
+total_total = df['Peso Neto Manejado'].sum()
 
-    # Operaciones
-    with col1:
-        st.markdown(f"""
-        <div class="kpi-box" style="
-            background: rgba(10,31,68,0.75);
-            backdrop-filter: blur(10px);
-            border-radius: 18px;
-            padding: 25px;
-            text-align: center;
-            color: white;
-            box-shadow: 0px 4px 20px rgba(0,0,0,0.25);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-left: 6px solid #00BFFF;
-        ">
-            <div class="kpi-title" style="font-size:20px; font-weight:600;">🚢 Operaciones</div>
-            <div class="kpi-value" style="font-size:38px; font-weight:bold; margin-top:10px;">{len(df)}</div>
-        </div>
-        """, unsafe_allow_html=True)
+# Convertir a enteros (como pediste)
+total_exportado = int(total_exportado)
+total_importado = int(total_importado)
+total_total = int(total_total)
 
-    # Exportado
-    with col2:
-        st.markdown(f"""
-        <div class="kpi-box" style="
-            background: rgba(10,31,68,0.75);
-            backdrop-filter: blur(10px);
-            border-radius: 18px;
-            padding: 25px;
-            text-align: center;
-            color: white;
-            box-shadow: 0px 4px 20px rgba(0,0,0,0.25);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-left: 6px solid #28A745;
-        ">
-            <div class="kpi-title" style="font-size:20px; font-weight:600;">🌍 Exportado</div>
-            <div class="kpi-value" style="font-size:38px; font-weight:bold; margin-top:10px;">{int(total_exportado):,}</div>
-        </div>
-        """, unsafe_allow_html=True)
+# =========================
+# DISEÑO KPI PROFESIONAL
+# =========================
 
-    # Importado
-    with col3:
-        st.markdown(f"""
-        <div class="kpi-box" style="
-            background: rgba(10,31,68,0.75);
-            backdrop-filter: blur(10px);
-            border-radius: 18px;
-            padding: 25px;
-            text-align: center;
-            color: white;
-            box-shadow: 0px 4px 20px rgba(0,0,0,0.25);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-left: 6px solid #FFC107;
-        ">
-            <div class="kpi-title" style="font-size:20px; font-weight:600;">📦 Importado</div>
-            <div class="kpi-value" style="font-size:38px; font-weight:bold; margin-top:10px;">{int(total_importado):,}</div>
-        </div>
-        """, unsafe_allow_html=True)
+col1, col2, col3, col4 = st.columns(4)
 
-    # Total
-    with col4:
-        st.markdown(f"""
-        <div class="kpi-box" style="
-            background: rgba(10,31,68,0.75);
-            backdrop-filter: blur(10px);
-            border-radius: 18px;
-            padding: 25px;
-            text-align: center;
-            color: white;
-            box-shadow: 0px 4px 20px rgba(0,0,0,0.25);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-left: 6px solid #DC3545;
-        ">
-            <div class="kpi-title" style="font-size:20px; font-weight:600;">⚖️ Total</div>
-            <div class="kpi-value" style="font-size:38px; font-weight:bold; margin-top:10px;">{int(total_general):,}</div>
-        </div>
-        """, unsafe_allow_html=True)
+with col1:
+    st.markdown(f"""
+    <div class="kpi-box" style="border-left: 6px solid #00BFFF;">
+        <div class="kpi-title">🚢 Operaciones</div>
+        <div class="kpi-value">{total_operaciones}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
+with col2:
+    st.markdown(f"""
+    <div class="kpi-box" style="border-left: 6px solid #28A745;">
+        <div class="kpi-title">🌍 Exportado (Ton)</div>
+        <div class="kpi-value">{total_exportado:,}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+    st.markdown(f"""
+    <div class="kpi-box" style="border-left: 6px solid #FFC107;">
+        <div class="kpi-title">📦 Importado (Ton)</div>
+        <div class="kpi-value">{total_importado:,}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col4:
+    st.markdown(f"""
+    <div class="kpi-box" style="border-left: 6px solid #DC3545;">
+        <div class="kpi-title">⚖️ Total (Ton)</div>
+        <div class="kpi-value">{total_total:,}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ------------------------------
 # GRÁFICOS Y MAPAS (ÚNICO BLOQUE)
