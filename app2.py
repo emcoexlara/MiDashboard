@@ -211,8 +211,7 @@ df_filtrado = st.session_state.df_global.copy()
 # ------------------------------
 # KPI PROFESIONAL GLASSMORPHISM
 # ------------------------------
-kpi_placeholder = st.container()  # Contenedor que reemplaza los KPI existentes
-
+kpi_placeholder = st.container()  
 with kpi_placeholder:
     col1, col2, col3, col4 = st.columns(4)
 
@@ -298,7 +297,7 @@ with kpi_placeholder:
 # ------------------------------
 # GRÁFICOS SIN DUPLICAR
 # ------------------------------
-fig_placeholder = st.container()  # Contenedor que reemplaza los gráficos existentes
+fig_placeholder = st.container()
 
 with fig_placeholder:
     # Exportaciones por país
