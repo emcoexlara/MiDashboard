@@ -4,8 +4,6 @@ import plotly.express as px
 import base64
 import os
 from pathlib import Path
-import pandas as pd
-import streamlit as st
 
 # Cargar archivo
 df = pd.read_excel("tu_archivo.xlsx")
