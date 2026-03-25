@@ -191,7 +191,7 @@ if tipos_carga:
 # KPI ÚNICO GARANTIZADO
 # =========================
 
-if "kpi_mostrado" not in st.session_state:
+
 
     st.session_state.kpi_mostrado = True
 
@@ -258,7 +258,7 @@ if "kpi_mostrado" not in st.session_state:
 # ------------------------------
 # MÉTRICAS
 # ------------------------------
-
+col1, col2, col3, col4 = st.columns(4)
 with col1:
     st.markdown(f"""
     <div style='background:{COLOR_TITULO}; padding:20px; border-radius:12px;
