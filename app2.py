@@ -15,8 +15,8 @@ st.title("Dashboard de Comercio Exterior")
 archivo = "tu_archivo.xlsx"
 
 # Verificar si existe el archivo
-if os.path.exists(datos.xlxs):
-    df = pd.read_excel(datos.xlxs)
+if os.path.exists(archivo):
+    df = pd.read_excel(archivo)
     st.subheader("Datos completos")
     st.dataframe(df)  # Muestra toda la data
 
