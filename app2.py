@@ -237,20 +237,6 @@ var_exp = variacion(total_exportado, exp_anterior)
 var_imp = variacion(total_importado, imp_anterior)
 var_tot = variacion(total_general, tot_anterior)
 
-# ------------------------------
-# SEMÁFORO
-# ------------------------------
-def semaforo(valor):
-    if valor > 5:
-        return "#28A745", "🟢", "Crecimiento"
-    elif valor >= -5:
-        return "#FFC107", "🟡", "Estable"
-    else:
-        return "#DC3545", "🔴", "Caída"
-
-color_exp, icon_exp, estado_exp = semaforo(var_exp)
-color_imp, icon_imp, estado_imp = semaforo(var_imp)
-color_tot, icon_tot, estado_tot = semaforo(var_tot)
 
 # ------------------------------
 # KPI VISUAL
