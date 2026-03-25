@@ -195,7 +195,21 @@ if destinos:
 if tipos_carga:
     df_filtrado = df_filtrado[df_filtrado['TIPO DE CARGA'].isin(tipos_carga)]
 # ------------------------------
-# KPI PROFESIONAL GLASSMORPHISM SIN DUPLICAR
+# CONTROL DE DUPLICADOS EN EL DATAFRAME
+# ------------------------------
+# Crear ID único para cada registro y eliminar duplicados
+df['id_unico'] = df['DESTINO'].astype(str) + "_" + df['FECHA'].astype(str) + "_" + df['TIPO DE CARGA'].astype(str)
+df = df.drop_duplicates(subset=['id_unico'])
+
+# Guardar el df limpio en session_state para que no se duplique al recargar
+if "df_global" not in st.session_state:
+    st.session_state.df_global = df.copy()
+
+# Usar df limpio para filtros y cálculos
+df_filtrado = st.session_state.df_global.copy()
+
+# ------------------------------
+# KPI PROFESIONAL GLASSMORPHISM
 # ------------------------------
 kpi_placeholder = st.container()  # Contenedor que reemplaza los KPI existentes
 
@@ -210,7 +224,7 @@ with kpi_placeholder:
     with col1:
         st.markdown(f"""
         <div class="kpi-box" style="
-            background: rgba(10, 31, 68, 0.75);
+            background: rgba(10,31,68,0.75);
             backdrop-filter: blur(10px);
             border-radius: 18px;
             padding: 25px;
@@ -229,7 +243,7 @@ with kpi_placeholder:
     with col2:
         st.markdown(f"""
         <div class="kpi-box" style="
-            background: rgba(10, 31, 68, 0.75);
+            background: rgba(10,31,68,0.75);
             backdrop-filter: blur(10px);
             border-radius: 18px;
             padding: 25px;
@@ -248,7 +262,7 @@ with kpi_placeholder:
     with col3:
         st.markdown(f"""
         <div class="kpi-box" style="
-            background: rgba(10, 31, 68, 0.75);
+            background: rgba(10,31,68,0.75);
             backdrop-filter: blur(10px);
             border-radius: 18px;
             padding: 25px;
@@ -267,7 +281,7 @@ with kpi_placeholder:
     with col4:
         st.markdown(f"""
         <div class="kpi-box" style="
-            background: rgba(10, 31, 68, 0.75);
+            background: rgba(10,31,68,0.75);
             backdrop-filter: blur(10px);
             border-radius: 18px;
             padding: 25px;
@@ -281,6 +295,30 @@ with kpi_placeholder:
             <div class="kpi-value" style="font-size:38px; font-weight:bold; margin-top:10px;">{int(total_general):,}</div>
         </div>
         """, unsafe_allow_html=True)
+# ------------------------------
+# GRÁFICOS SIN DUPLICAR
+# ------------------------------
+fig_placeholder = st.container()  # Contenedor que reemplaza los gráficos existentes
+
+with fig_placeholder:
+    # Exportaciones por país
+    df_paises = df_filtrado.groupby('DESTINO')['Peso Neto Exportado'].sum().reset_index()
+    fig1 = px.bar(df_paises, x='DESTINO', y='Peso Neto Exportado', text='Peso Neto Exportado', title="Exportaciones por País")
+    fig1.update_traces(texttemplate='%{text:,.0f}', textposition='outside')
+    st.plotly_chart(fig1, use_container_width=True)
+
+    # Contenedores vs toneladas
+    if 'CONTENIDO' in df_filtrado.columns and 'LLENOS RECIBIDOS (EXPORTADOS)' in df_filtrado.columns:
+        df_cont = df_filtrado.groupby('CONTENIDO')[['LLENOS RECIBIDOS (EXPORTADOS)','Peso Neto Exportado']].sum().reset_index()
+        fig2 = px.bar(df_cont, x='CONTENIDO', y=['LLENOS RECIBIDOS (EXPORTADOS)','Peso Neto Exportado'], barmode='group', title="Contenedores vs Toneladas")
+        st.plotly_chart(fig2, use_container_width=True)
+
+    # Mapa de exportaciones
+    df_map = df_filtrado.groupby(['DESTINO','TIPO DE CARGA'], as_index=False)['Peso Neto Exportado'].sum()
+    fig_map = px.scatter_geo(df_map, locations='DESTINO', locationmode='country names',
+                             size='Peso Neto Exportado', color='TIPO DE CARGA', hover_name='DESTINO',
+                             size_max=45, projection='natural earth', title="Mapa de Exportaciones por País y Tipo de Carga")
+    st.plotly_chart(fig_map, use_container_width=True)
 # ------------------------------
 # MÉTRICAS
 # ------------------------------
