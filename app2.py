@@ -18,7 +18,17 @@ COLOR_CUADRO = "#F2F2F2"
 COLOR_FONDO = "#f5f5f5"
 COLOR_CUADRO = "#003366"  # azul corporativo
 COLOR_ICONO = "#FFD700"   # dorado
-
+# ------------------------------
+# TEMPLATE PROFESIONAL PARA GRÁFICOS
+# ------------------------------
+TEMPLATE_PRO = dict(
+    layout=dict(
+        font=dict(family="Arial", size=14, color="black"),
+        title=dict(font=dict(size=20, color="black")),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+    )
+)
 # ------------------------------
 # FONDO
 # ------------------------------
