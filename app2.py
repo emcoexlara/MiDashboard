@@ -207,17 +207,23 @@ if "df_global" not in st.session_state:
 
 # Usar df limpio para filtros y cálculos
 df_filtrado = st.session_state.df_global.copy()
+# ------------------------------
+# LIMPIEZA Y UNICIDAD DE DATOS
+# ------------------------------
+df['id_unico'] = df['DESTINO'].astype(str) + "_" + df['FECHA'].astype(str) + "_" + df['TIPO DE CARGA'].astype(str)
+df = df.drop_duplicates(subset=['id_unico'])
 
 # ------------------------------
-# KPI PROFESIONAL GLASSMORPHISM
+# KPI PROFESIONAL GLASSMORPHISM (ÚNICO BLOQUE)
 # ------------------------------
-kpi_placeholder = st.container()  
+kpi_placeholder = st.container()
+
 with kpi_placeholder:
     col1, col2, col3, col4 = st.columns(4)
 
-    total_exportado = df_filtrado['Peso Neto Exportado'].sum()
-    total_importado = df_filtrado['Peso Neto Importado'].sum()
-    total_general = df_filtrado['Peso Neto Manejado'].sum()
+    total_exportado = df['Peso Neto Exportado'].sum()
+    total_importado = df['Peso Neto Importado'].sum()
+    total_general = df['Peso Neto Manejado'].sum()
 
     # Operaciones
     with col1:
@@ -234,7 +240,7 @@ with kpi_placeholder:
             border-left: 6px solid #00BFFF;
         ">
             <div class="kpi-title" style="font-size:20px; font-weight:600;">🚢 Operaciones</div>
-            <div class="kpi-value" style="font-size:38px; font-weight:bold; margin-top:10px;">{len(df_filtrado)}</div>
+            <div class="kpi-value" style="font-size:38px; font-weight:bold; margin-top:10px;">{len(df)}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -294,30 +300,17 @@ with kpi_placeholder:
             <div class="kpi-value" style="font-size:38px; font-weight:bold; margin-top:10px;">{int(total_general):,}</div>
         </div>
         """, unsafe_allow_html=True)
+
+
 # ------------------------------
-# GRÁFICOS SIN DUPLICAR
+# GRÁFICOS Y MAPAS (ÚNICO BLOQUE)
 # ------------------------------
 fig_placeholder = st.container()
 
 with fig_placeholder:
     # Exportaciones por país
-    df_paises = df_filtrado.groupby('DESTINO')['Peso Neto Exportado'].sum().reset_index()
-    fig1 = px.bar(df_paises, x='DESTINO', y='Peso Neto Exportado', text='Peso Neto Exportado', title="Exportaciones por País")
-    fig1.update_traces(texttemplate='%{text:,.0f}', textposition='outside')
-    st.plotly_chart(fig1, use_container_width=True)
+    df_paises = df.groupby('DESTINO')['Peso Neto Exportado'].sum().reset_index()
 
-    # Contenedores vs toneladas
-    if 'CONTENIDO' in df_filtrado.columns and 'LLENOS RECIBIDOS (EXPORTADOS)' in df_filtrado.columns:
-        df_cont = df_filtrado.groupby('CONTENIDO')[['LLENOS RECIBIDOS (EXPORTADOS)','Peso Neto Exportado']].sum().reset_index()
-        fig2 = px.bar(df_cont, x='CONTENIDO', y=['LLENOS RECIBIDOS (EXPORTADOS)','Peso Neto Exportado'], barmode='group', title="Contenedores vs Toneladas")
-        st.plotly_chart(fig2, use_container_width=True)
-
-    # Mapa de exportaciones
-    df_map = df_filtrado.groupby(['DESTINO','TIPO DE CARGA'], as_index=False)['Peso Neto Exportado'].sum()
-    fig_map = px.scatter_geo(df_map, locations='DESTINO', locationmode='country names',
-                             size='Peso Neto Exportado', color='TIPO DE CARGA', hover_name='DESTINO',
-                             size_max=45, projection='natural earth', title="Mapa de Exportaciones por País y Tipo de Carga")
-    st.plotly_chart(fig_map, use_container_width=True)
 # ------------------------------
 # MÉTRICAS
 # ------------------------------
