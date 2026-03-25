@@ -191,7 +191,7 @@ if tipos_carga:
 # KPI ÚNICO GARANTIZADO
 # =========================
 
-
+if "kpi_mostrado" not in st.session_state:
 
     st.session_state.kpi_mostrado = True
 
