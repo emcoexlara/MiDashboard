@@ -244,15 +244,19 @@ df['id_unico'] = df['DESTINO'].astype(str) + "_" + df['FECHA'].astype(str) + "_"
 df = df.drop_duplicates(subset=['id_unico'])
 
 # =========================
-# KPI (DATA COMPLETA)
+# KPI FINAL (DISEÑO + DATOS EXCEL)
 # =========================
 
+# Asegurar columnas limpias
+df.columns = df.columns.str.strip()
+
+# Datos EXACTOS del Excel
 total_operaciones = df['N° DE OPERACIÓN'].count()
 total_exportado = int(df['Peso Neto Exportado'].sum())
 total_importado = int(df['Peso Neto Importado'].sum())
 total_total = int(df['Peso Neto Manejado'].sum())
 
-# Estilo
+# ESTILO (NO TOCAR)
 st.markdown("""
 <style>
 .kpi-box {
@@ -277,6 +281,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# COLUMNAS (UNA SOLA VEZ)
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
