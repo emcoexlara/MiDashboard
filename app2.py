@@ -187,56 +187,76 @@ if destinos:
 # Tipo de carga
 if tipos_carga:
     df_filtrado = df_filtrado[df_filtrado['TIPO DE CARGA'].isin(tipos_carga)]
-  # ------------------------------
-# KPI + SEMÁFORO EMPRESARIAL
+# ------------------------------
+# KPI PROFESIONAL (GLASSMORPHISM)
 # ------------------------------
 
-# Asegurar formato fecha
-df_filtrado['FECHA'] = pd.to_datetime(df_filtrado['FECHA'], errors='coerce')
+total_exportado = df_filtrado['Peso Neto Exportado'].sum()
+total_importado = df_filtrado['Peso Neto Importado'].sum()
+total_general = df_filtrado['Peso Neto Manejado'].sum()
 
-# Crear columna mes
-df_filtrado['MES'] = df_filtrado['FECHA'].dt.to_period('M')
+# Estilo global KPI
+st.markdown("""
+<style>
+.kpi-box {
+    background: rgba(10, 31, 68, 0.75);
+    backdrop-filter: blur(10px);
+    border-radius: 18px;
+    padding: 25px;
+    text-align: center;
+    color: white;
+    box-shadow: 0px 4px 20px rgba(0,0,0,0.25);
+    border: 2px solid rgba(255,255,255,0.2);
+    transition: transform 0.2s ease;
+}
+.kpi-box:hover {
+    transform: scale(1.05);
+}
+.kpi-title {
+    font-size: 20px;
+    font-weight: 600;
+}
+.kpi-value {
+    font-size: 38px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+</style>
+""", unsafe_allow_html=True)
 
-# Agrupar por mes
-df_mes = df_filtrado.groupby('MES').agg({
-    'Peso Neto Exportado': 'sum',
-    'Peso Neto Importado': 'sum',
-    'Peso Neto Manejado': 'sum'
-}).reset_index()
+col1, col2, col3, col4 = st.columns(4)
 
-df_mes = df_mes.sort_values('MES')
+with col1:
+    st.markdown(f"""
+    <div class="kpi-box" style="border-left: 6px solid #00BFFF;">
+        <div class="kpi-title">🚢 Operaciones</div>
+        <div class="kpi-value">{len(df_filtrado)}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-# Validación de períodos
-if len(df_mes) >= 2:
-    actual = df_mes.iloc[-1]
-    anterior = df_mes.iloc[-2]
+with col2:
+    st.markdown(f"""
+    <div class="kpi-box" style="border-left: 6px solid #28A745;">
+        <div class="kpi-title">🌍 Exportado</div>
+        <div class="kpi-value">{int(total_exportado):,}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    total_exportado = actual['Peso Neto Exportado']
-    total_importado = actual['Peso Neto Importado']
-    total_general = actual['Peso Neto Manejado']
+with col3:
+    st.markdown(f"""
+    <div class="kpi-box" style="border-left: 6px solid #FFC107;">
+        <div class="kpi-title">📦 Importado</div>
+        <div class="kpi-value">{int(total_importado):,}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    exp_anterior = anterior['Peso Neto Exportado']
-    imp_anterior = anterior['Peso Neto Importado']
-    tot_anterior = anterior['Peso Neto Manejado']
-else:
-    total_exportado = df_filtrado['Peso Neto Exportado'].sum()
-    total_importado = df_filtrado['Peso Neto Importado'].sum()
-    total_general = df_filtrado['Peso Neto Manejado'].sum()
-
-    exp_anterior = 0
-    imp_anterior = 0
-    tot_anterior = 0
-
-# Función variación
-def variacion(actual, anterior):
-    if anterior == 0:
-        return 0
-    return ((actual - anterior) / anterior) * 100
-
-var_exp = variacion(total_exportado, exp_anterior)
-var_imp = variacion(total_importado, imp_anterior)
-var_tot = variacion(total_general, tot_anterior)
-
+with col4:
+    st.markdown(f"""
+    <div class="kpi-box" style="border-left: 6px solid #DC3545;">
+        <div class="kpi-title">⚖️ Total</div>
+        <div class="kpi-value">{int(total_general):,}</div>
+    </div>
+    """, unsafe_allow_html=True)
 # ------------------------------
 # MÉTRICAS
 col1, col2, col3, col4 = st.columns(4)
