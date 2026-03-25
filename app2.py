@@ -237,48 +237,6 @@ var_exp = variacion(total_exportado, exp_anterior)
 var_imp = variacion(total_importado, imp_anterior)
 var_tot = variacion(total_general, tot_anterior)
 
-
-# ------------------------------
-# KPI VISUAL
-# ------------------------------
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    st.markdown(f"""
-    <div style='background:{COLOR_TITULO}; padding:20px; border-radius:12px;
-    text-align:center; color:white; border:3px solid #00BFFF;'>
-    🚢<h3>Operaciones</h3>
-    <h1>{len(df_filtrado)}</h1>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col2:
-    st.markdown(f"""
-    <div style='background:{COLOR_TITULO}; padding:20px; border-radius:12px;
-    text-align:center; color:white; border:3px solid #28A745;'>
-    🌍<h3>Exportado</h3>
-    <h1>{int(df_filtrado['Peso Neto Exportado'].sum()):,}</h1>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col3:
-    st.markdown(f"""
-    <div style='background:{COLOR_TITULO}; padding:20px; border-radius:12px;
-    text-align:center; color:white; border:3px solid #FFC107;'>
-    📦<h3>Importado</h3>
-    <h1>{int(df_filtrado['Peso Neto Importado'].sum()):,}</h1>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col4:
-    st.markdown(f"""
-    <div style='background:{COLOR_TITULO}; padding:20px; border-radius:12px;
-    text-align:center; color:white; border:3px solid #DC3545;'>
-    ⚖️<h3>Total</h3>
-    <h1>{int(df_filtrado['Peso Neto Manejado'].sum()):,}</h1>
-    </div>
-    """, unsafe_allow_html=True)
-
 # ------------------------------
 # MÉTRICAS
 col1, col2, col3, col4 = st.columns(4)
