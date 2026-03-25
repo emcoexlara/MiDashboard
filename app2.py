@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 # Cargar archivo
-df = pd.read_excel("tu_archivo.xlsx")
+df = pd.read_excel("datos.xlsx")
 
 # Limpiar columnas
 df.columns = df.columns.str.strip()
