@@ -241,7 +241,6 @@ var_tot = variacion(total_general, tot_anterior)
 # ------------------------------
 # KPI VISUAL
 # ------------------------------
-
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
@@ -256,35 +255,30 @@ with col1:
 with col2:
     st.markdown(f"""
     <div style='background:{COLOR_TITULO}; padding:20px; border-radius:12px;
-    text-align:center; color:white; border:3px solid {color_exp};'>
+    text-align:center; color:white; border:3px solid #28A745;'>
     🌍<h3>Exportado</h3>
-    <h1>{int(total_exportado):,}</h1>
-    <p style='font-size:16px; color:{color_exp};'><b>{icon_exp} {var_exp:.1f}%</b></p>
-    <p style='font-size:14px; color:{color_exp};'>{estado_exp}</p>
+    <h1>{int(df_filtrado['Peso Neto Exportado'].sum()):,}</h1>
     </div>
     """, unsafe_allow_html=True)
 
 with col3:
     st.markdown(f"""
     <div style='background:{COLOR_TITULO}; padding:20px; border-radius:12px;
-    text-align:center; color:white; border:3px solid {color_imp};'>
+    text-align:center; color:white; border:3px solid #FFC107;'>
     📦<h3>Importado</h3>
-    <h1>{int(total_importado):,}</h1>
-    <p style='font-size:16px; color:{color_imp};'><b>{icon_imp} {var_imp:.1f}%</b></p>
-    <p style='font-size:14px; color:{color_imp};'>{estado_imp}</p>
+    <h1>{int(df_filtrado['Peso Neto Importado'].sum()):,}</h1>
     </div>
     """, unsafe_allow_html=True)
 
 with col4:
     st.markdown(f"""
     <div style='background:{COLOR_TITULO}; padding:20px; border-radius:12px;
-    text-align:center; color:white; border:3px solid {color_tot};'>
+    text-align:center; color:white; border:3px solid #DC3545;'>
     ⚖️<h3>Total</h3>
-    <h1>{int(total_general):,}</h1>
-    <p style='font-size:16px; color:{color_tot};'><b>{icon_tot} {var_tot:.1f}%</b></p>
-    <p style='font-size:14px; color:{color_tot};'>{estado_tot}</p>
+    <h1>{int(df_filtrado['Peso Neto Manejado'].sum()):,}</h1>
     </div>
     """, unsafe_allow_html=True)
+
 # ------------------------------
 # MÉTRICAS
 col1, col2, col3, col4 = st.columns(4)
