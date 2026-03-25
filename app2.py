@@ -224,27 +224,44 @@ df['id_unico'] = df['DESTINO'].astype(str) + "_" + df['FECHA'].astype(str) + "_"
 df = df.drop_duplicates(subset=['id_unico'])
 
 # =========================
-# KPI DESDE EXCEL (VALOR REAL)
+# KPI FINAL (DISEÑO + DATOS EXCEL)
 # =========================
 
-# Asegurar nombres correctos de columnas
+# Asegurar columnas limpias
 df.columns = df.columns.str.strip()
 
-# KPIs directos del Excel (sin distorsión)
+# Datos EXACTOS del Excel
 total_operaciones = df['N° DE OPERACIÓN'].count()
-total_exportado = df['Peso Neto Exportado'].sum()
-total_importado = df['Peso Neto Importado'].sum()
-total_total = df['Peso Neto Manejado'].sum()
+total_exportado = int(df['Peso Neto Exportado'].sum())
+total_importado = int(df['Peso Neto Importado'].sum())
+total_total = int(df['Peso Neto Manejado'].sum())
 
-# Convertir a enteros (como pediste)
-total_exportado = int(total_exportado)
-total_importado = int(total_importado)
-total_total = int(total_total)
+# ESTILO (NO TOCAR)
+st.markdown("""
+<style>
+.kpi-box {
+    background: rgba(10, 31, 68, 0.75);
+    backdrop-filter: blur(10px);
+    border-radius: 18px;
+    padding: 25px;
+    text-align: center;
+    color: white;
+    box-shadow: 0px 4px 20px rgba(0,0,0,0.25);
+    border: 2px solid rgba(255,255,255,0.2);
+}
+.kpi-title {
+    font-size: 20px;
+    font-weight: 600;
+}
+.kpi-value {
+    font-size: 38px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+</style>
+""", unsafe_allow_html=True)
 
-# =========================
-# DISEÑO KPI PROFESIONAL
-# =========================
-
+# COLUMNAS (UNA SOLA VEZ)
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
@@ -258,7 +275,7 @@ with col1:
 with col2:
     st.markdown(f"""
     <div class="kpi-box" style="border-left: 6px solid #28A745;">
-        <div class="kpi-title">🌍 Exportado (Ton)</div>
+        <div class="kpi-title">🌍 Exportado</div>
         <div class="kpi-value">{total_exportado:,}</div>
     </div>
     """, unsafe_allow_html=True)
@@ -266,7 +283,7 @@ with col2:
 with col3:
     st.markdown(f"""
     <div class="kpi-box" style="border-left: 6px solid #FFC107;">
-        <div class="kpi-title">📦 Importado (Ton)</div>
+        <div class="kpi-title">📦 Importado</div>
         <div class="kpi-value">{total_importado:,}</div>
     </div>
     """, unsafe_allow_html=True)
@@ -274,7 +291,7 @@ with col3:
 with col4:
     st.markdown(f"""
     <div class="kpi-box" style="border-left: 6px solid #DC3545;">
-        <div class="kpi-title">⚖️ Total (Ton)</div>
+        <div class="kpi-title">⚖️ Total</div>
         <div class="kpi-value">{total_total:,}</div>
     </div>
     """, unsafe_allow_html=True)
