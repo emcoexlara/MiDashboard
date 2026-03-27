@@ -6,47 +6,6 @@ import os
 from pathlib import Path
 # Cargar archivo
 df = pd.read_excel("datos.xlsx")
-import pandas as pd
-
-# Cargar tu archivo (reemplaza "tu_archivo.xlsx" por el nombre real)
-df = pd.read_excel("tu_archivo.xlsx")
-
-# ----------------------------
-# 1. Normalizar nombres de destino
-# ----------------------------
-df['Destino'] = df['Destino'].astype(str).str.strip().str.upper()
-
-# ----------------------------
-# 2. Corregir totales
-# ----------------------------
-df['Total_Calculado'] = df['Exportado'] + df['Importado']
-
-# Detectar inconsistencias
-inconsistencias = df[df['Total'] != df['Total_Calculado']]
-print(f"⚠️ Inconsistencias detectadas: {len(inconsistencias)} filas")
-
-# Actualizar totales para eliminar inconsistencias
-df['Total'] = df['Total_Calculado']
-df.drop(columns=['Total_Calculado'], inplace=True)
-
-# ----------------------------
-# 3. Evitar duplicados en filtros de destino
-# ----------------------------
-# Crear lista única de destinos para filtros
-filtros_destino = df['Destino'].unique()
-print(f"Destinos únicos para filtro: {len(filtros_destino)}")
-
-# ----------------------------
-# 4. Agrupar datos por destino para dashboard
-# ----------------------------
-df_agrupado = df.groupby('Destino', as_index=False).agg({
-    'Exportado': 'sum',
-    'Importado': 'sum',
-    'Total': 'sum'
-})
-
-# Ahora df_agrupado tiene datos consistentes y destinos únicos
-# Puedes usar df_agrupado para tus gráficos y filtros
 # ------------------------------
 # CONFIGURACIÓN GENERAL
 # ------------------------------
