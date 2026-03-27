@@ -6,6 +6,52 @@ import os
 from pathlib import Path
 # Cargar archivo
 df = pd.read_excel("datos.xlsx")
+
+# ----------------------------
+# 1️⃣ Cargar Excel completo
+# ----------------------------
+df = pd.read_excel("tu_archivo.xlsx", dtype={'Exportado': float, 'Importado': float})
+
+# ----------------------------
+# 2️⃣ Normalizar columna Destino
+# ----------------------------
+df['Destino'] = df['Destino'].astype(str).str.strip().str.upper()
+
+# ----------------------------
+# 3️⃣ Calcular Totales exactos
+# ----------------------------
+df['Total'] = df['Exportado'] + df['Importado']
+
+# ----------------------------
+# 4️⃣ Crear filtro de destinos único
+# ----------------------------
+filtros_destino = sorted(df['Destino'].unique())  # Lista única para filtros
+
+# ----------------------------
+# 5️⃣ Agrupar datos para gráficos/tablas resumidas
+# ----------------------------
+df_agrupado = df.groupby('Destino', as_index=False).agg({
+    'Exportado': 'sum',
+    'Importado': 'sum',
+    'Total': 'sum'
+})
+
+# ----------------------------
+# 6️⃣ Mostrar datos completos en el dashboard
+# ----------------------------
+st.title("Dashboard de Comercio Exterior")
+st.subheader("Datos completos por destino")
+st.dataframe(df)  # Muestra todas las filas
+
+st.subheader("Datos resumidos por destino")
+st.dataframe(df_agrupado)  # Muestra totales agrupados
+
+# ----------------------------
+# 7️⃣ Opcional: filtro interactivo
+# ----------------------------
+destino_seleccionado = st.selectbox("Selecciona un destino:", filtros_destino)
+df_filtrado = df[df['Destino'] == destino_seleccionado]
+st.dataframe(df_filtrado)  # Solo filas del destino seleccionado
 # ------------------------------
 # CONFIGURACIÓN GENERAL
 # ------------------------------
