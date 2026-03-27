@@ -184,17 +184,7 @@ tipos_carga = st.sidebar.multiselect(
     options=sorted(df['TIPO DE CARGA'].dropna().unique()),
     default=sorted(df['TIPO DE CARGA'].dropna().unique())
 )
-df_filtrado = df.copy()
 
-# Ejemplo de filtro
-if 'DESTINO' in df.columns:
-    destinos = st.sidebar.multiselect(
-        "Destino",
-        df['DESTINO'].dropna().unique()
-    )
-
-    if destinos:
-        df_filtrado = df_filtrado[df_filtrado['DESTINO'].isin(destinos)]
 # ------------------------------
 # APLICAR FILTROS
 # ------------------------------
