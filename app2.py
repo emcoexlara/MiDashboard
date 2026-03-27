@@ -6,7 +6,32 @@ import os
 from pathlib import Path
 # Cargar archivo
 df = pd.read_excel("datos.xlsx")
+# =========================
+# NORMALIZACIÓN DE DATOS (OBLIGATORIO)
+# =========================
 
+df.columns = df.columns.str.strip()
+
+# Eliminar separadores de miles si existen (muy común en Excel)
+df['Peso Neto Exportado'] = df['Peso Neto Exportado'].astype(str).str.replace(',', '').str.strip()
+df['Peso Neto Importado'] = df['Peso Neto Importado'].astype(str).str.replace(',', '').str.strip()
+df['Peso Neto Manejado'] = df['Peso Neto Manejado'].astype(str).str.replace(',', '').str.strip()
+
+# Convertir a numérico real
+df['Peso Neto Exportado'] = pd.to_numeric(df['Peso Neto Exportado'], errors='coerce')
+df['Peso Neto Importado'] = pd.to_numeric(df['Peso Neto Importado'], errors='coerce')
+df['Peso Neto Manejado'] = pd.to_numeric(df['Peso Neto Manejado'], errors='coerce')
+
+# =========================
+# KPI EXACTO (SIN FILTROS)
+# =========================
+
+total_operaciones = df['N° DE OPERACIÓN'].count()
+
+# Usar sum() real y luego convertir
+total_exportado = int(df['Peso Neto Exportado'].fillna(0).sum())
+total_importado = int(df['Peso Neto Importado'].fillna(0).sum())
+total_total = int(df['Peso Neto Manejado'].fillna(0).sum())
 # Limpiar columnas
 df.columns = df.columns.str.strip()
 
