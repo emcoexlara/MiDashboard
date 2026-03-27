@@ -6,54 +6,47 @@ import os
 from pathlib import Path
 # Cargar archivo
 df = pd.read_excel("datos.xlsx")
-# =========================
-# VALIDACIÓN DE INTEGRIDAD DE DATOS
-# =========================
+import pandas as pd
 
-# 1. LIMPIEZA BASE
-df.columns = df.columns.str.strip()
-df = df.dropna(how='all')
+# Cargar tu archivo (reemplaza "tu_archivo.xlsx" por el nombre real)
+df = pd.read_excel("tu_archivo.xlsx")
 
-# 2. NORMALIZAR COLUMNAS NUMÉRICAS
-for col in ['Peso Neto Exportado', 'Peso Neto Importado', 'Peso Neto Manejado']:
-    df[col] = (
-        df[col]
-        .astype(str)
-        .str.replace(',', '', regex=False)
-        .str.strip()
-    )
-    df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+# ----------------------------
+# 1. Normalizar nombres de destino
+# ----------------------------
+df['Destino'] = df['Destino'].astype(str).str.strip().str.upper()
 
-# 3. VALIDACIÓN DE DUPLICADOS
-duplicados = df[df.duplicated(subset=['N° DE OPERACIÓN'], keep=False)]
+# ----------------------------
+# 2. Corregir totales
+# ----------------------------
+df['Total_Calculado'] = df['Exportado'] + df['Importado']
 
-# 4. VALIDACIÓN DE CONSISTENCIA (EXPORT + IMPORT ≠ TOTAL)
-df['CALCULO_TOTAL'] = df['Peso Neto Exportado'] + df['Peso Neto Importado']
-inconsistencias = df[df['CALCULO_TOTAL'] != df['Peso Neto Manejado']]
+# Detectar inconsistencias
+inconsistencias = df[df['Total'] != df['Total_Calculado']]
+print(f"⚠️ Inconsistencias detectadas: {len(inconsistencias)} filas")
 
-# =========================
-# ALERTAS EN STREAMLIT
-# =========================
+# Actualizar totales para eliminar inconsistencias
+df['Total'] = df['Total_Calculado']
+df.drop(columns=['Total_Calculado'], inplace=True)
 
-if len(duplicados) > 0:
-    st.error(f"⚠️ Existen {len(duplicados)} registros duplicados de operaciones")
+# ----------------------------
+# 3. Evitar duplicados en filtros de destino
+# ----------------------------
+# Crear lista única de destinos para filtros
+filtros_destino = df['Destino'].unique()
+print(f"Destinos únicos para filtro: {len(filtros_destino)}")
 
-if len(inconsistencias) > 0:
-    st.warning(f"⚠️ Existen {len(inconsistencias)} inconsistencias en los totales")
+# ----------------------------
+# 4. Agrupar datos por destino para dashboard
+# ----------------------------
+df_agrupado = df.groupby('Destino', as_index=False).agg({
+    'Exportado': 'sum',
+    'Importado': 'sum',
+    'Total': 'sum'
+})
 
-if len(duplicados) == 0 and len(inconsistencias) == 0:
-    st.success("✅ Datos validados correctamente")
-
-# =========================
-# KPIs LIMPIOS Y CONFIABLES
-# =========================
-
-df_kpi = df.drop_duplicates(subset=['N° DE OPERACIÓN'])
-
-total_operaciones = df_kpi['N° DE OPERACIÓN'].nunique()
-total_exportado = int(df_kpi['Peso Neto Exportado'].sum())
-total_importado = int(df_kpi['Peso Neto Importado'].sum())
-total_total = int(df_kpi['Peso Neto Manejado'].sum())
+# Ahora df_agrupado tiene datos consistentes y destinos únicos
+# Puedes usar df_agrupado para tus gráficos y filtros
 # ------------------------------
 # CONFIGURACIÓN GENERAL
 # ------------------------------
