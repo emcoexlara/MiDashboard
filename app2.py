@@ -10,7 +10,7 @@ df = pd.read_excel("datos.xlsx")
 # ----------------------------
 # 1️⃣ Cargar Excel completo
 # ----------------------------
-df = pd.read_excel("tu_archivo.xlsx", dtype={'Exportado': float, 'Importado': float})
+df = pd.read_excel("datos.xlsx", dtype={'Exportado': float, 'Importado': float})
 
 # ----------------------------
 # 2️⃣ Normalizar columna Destino
