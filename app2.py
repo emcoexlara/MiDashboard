@@ -7,38 +7,53 @@ from pathlib import Path
 # Cargar archivo
 df = pd.read_excel("datos.xlsx")
 # =========================
-# NORMALIZACIÓN DE DATOS (OBLIGATORIO)
+# VALIDACIÓN DE INTEGRIDAD DE DATOS
 # =========================
 
+# 1. LIMPIEZA BASE
 df.columns = df.columns.str.strip()
+df = df.dropna(how='all')
 
-# Eliminar separadores de miles si existen (muy común en Excel)
-df['Peso Neto Exportado'] = df['Peso Neto Exportado'].astype(str).str.replace(',', '').str.strip()
-df['Peso Neto Importado'] = df['Peso Neto Importado'].astype(str).str.replace(',', '').str.strip()
-df['Peso Neto Manejado'] = df['Peso Neto Manejado'].astype(str).str.replace(',', '').str.strip()
+# 2. NORMALIZAR COLUMNAS NUMÉRICAS
+for col in ['Peso Neto Exportado', 'Peso Neto Importado', 'Peso Neto Manejado']:
+    df[col] = (
+        df[col]
+        .astype(str)
+        .str.replace(',', '', regex=False)
+        .str.strip()
+    )
+    df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
 
-# Convertir a numérico real
-df['Peso Neto Exportado'] = pd.to_numeric(df['Peso Neto Exportado'], errors='coerce')
-df['Peso Neto Importado'] = pd.to_numeric(df['Peso Neto Importado'], errors='coerce')
-df['Peso Neto Manejado'] = pd.to_numeric(df['Peso Neto Manejado'], errors='coerce')
+# 3. VALIDACIÓN DE DUPLICADOS
+duplicados = df[df.duplicated(subset=['N° DE OPERACIÓN'], keep=False)]
+
+# 4. VALIDACIÓN DE CONSISTENCIA (EXPORT + IMPORT ≠ TOTAL)
+df['CALCULO_TOTAL'] = df['Peso Neto Exportado'] + df['Peso Neto Importado']
+inconsistencias = df[df['CALCULO_TOTAL'] != df['Peso Neto Manejado']]
 
 # =========================
-# KPI EXACTO (SIN FILTROS)
+# ALERTAS EN STREAMLIT
 # =========================
 
-total_operaciones = df['N° DE OPERACIÓN'].count()
+if len(duplicados) > 0:
+    st.error(f"⚠️ Existen {len(duplicados)} registros duplicados de operaciones")
 
-# Usar sum() real y luego convertir
-total_exportado = int(df['Peso Neto Exportado'].fillna(0).sum())
-total_importado = int(df['Peso Neto Importado'].fillna(0).sum())
-total_total = int(df['Peso Neto Manejado'].fillna(0).sum())
-# Limpiar columnas
-df.columns = df.columns.str.strip()
+if len(inconsistencias) > 0:
+    st.warning(f"⚠️ Existen {len(inconsistencias)} inconsistencias en los totales")
 
-# Convertir a numérico (CRÍTICO)
-df['Peso Neto Exportado'] = pd.to_numeric(df['Peso Neto Exportado'], errors='coerce')
-df['Peso Neto Importado'] = pd.to_numeric(df['Peso Neto Importado'], errors='coerce')
-df['Peso Neto Manejado'] = pd.to_numeric(df['Peso Neto Manejado'], errors='coerce')
+if len(duplicados) == 0 and len(inconsistencias) == 0:
+    st.success("✅ Datos validados correctamente")
+
+# =========================
+# KPIs LIMPIOS Y CONFIABLES
+# =========================
+
+df_kpi = df.drop_duplicates(subset=['N° DE OPERACIÓN'])
+
+total_operaciones = df_kpi['N° DE OPERACIÓN'].nunique()
+total_exportado = int(df_kpi['Peso Neto Exportado'].sum())
+total_importado = int(df_kpi['Peso Neto Importado'].sum())
+total_total = int(df_kpi['Peso Neto Manejado'].sum())
 # ------------------------------
 # CONFIGURACIÓN GENERAL
 # ------------------------------
