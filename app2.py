@@ -207,7 +207,7 @@ tipos_carga = st.sidebar.multiselect(
 # ------------------------------
 
 df_filtrado = df.copy()
-
+df_filtrado.sum()
 # Fecha
 if len(rango_fecha) == 2:
     df_filtrado = df_filtrado[
