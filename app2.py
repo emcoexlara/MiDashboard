@@ -116,6 +116,11 @@ for col in columnas_requeridas[1:]:
     df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
 
 df_filtrado = df.copy()
+# --- CÁLCULO DE TOTALES ---
+total_operaciones = len(df_filtrado)
+total_exportado = df_filtrado['Peso Neto Exportado'].sum()
+total_importado = df_filtrado['Peso Neto Importado'].sum()
+total_total = df_filtrado['Peso Neto Manejado'].sum()
 # ------------------------------
 # VALIDACIÓN DE COLUMNAS
 # ------------------------------
