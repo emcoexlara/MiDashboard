@@ -92,6 +92,11 @@ df = load_data(file_path, last_modified)
 # ✅ DESPUÉS: trabajar con df
 df.columns = df.columns.str.strip()
 
+# Crear ID único para identificar registros duplicados
+df['id_unico'] = df['DESTINO'].astype(str) + "_" + \
+                 df['FECHA'].astype(str) + "_" + \
+                 df['TIPO DE CARGA'].astype(str)
+
 # Eliminar duplicados basados en ese ID
 df = df.drop_duplicates(subset=['id_unico'])
 columnas_requeridas = [
@@ -110,6 +115,33 @@ if faltantes:
 for col in columnas_requeridas[1:]:
     df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
 
+df_filtrado = df.copy()
+# ------------------------------
+# VALIDACIÓN DE COLUMNAS
+# ------------------------------
+
+# Limpiar nombres de columnas (elimina espacios ocultos)
+df.columns = df.columns.str.strip()
+
+# Columnas obligatorias
+columnas_requeridas = [
+    'DESTINO',
+    'Peso Neto Exportado',
+    'Peso Neto Importado',
+    'Peso Neto Manejado'
+]
+# Verificar si faltan columnas
+faltantes = [col for col in columnas_requeridas if col not in df.columns]
+
+if faltantes:
+    st.error(f"❌ Faltan columnas en el Excel: {faltantes}")
+    st.stop()
+
+# Convertir columnas a numérico (evita errores y ceros)
+for col in columnas_requeridas[1:]:
+    df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+
+# Crear df_filtrado correctamente
 df_filtrado = df.copy()
 # ------------------------------
 # LIMPIEZA DE DATOS
@@ -181,6 +213,8 @@ df['id_unico'] = df['DESTINO'].astype(str) + "_" + df['FECHA'].astype(str) + "_"
 df = df.drop_duplicates(subset=['id_unico'])
 
 # Guardar el df limpio en session_state para que no se duplique al recargar
+if "df_global" not in st.session_state:
+    st.session_state.df_global = df.copy()
 
 # Usar df limpio para filtros y cálculos
 df_filtrado = st.session_state.df_global.copy()
@@ -197,6 +231,11 @@ df = df.drop_duplicates(subset=['id_unico'])
 # Asegurar columnas limpias
 df.columns = df.columns.str.strip()
 
+# Datos EXACTOS del Excel
+total_operaciones = df['N° DE OPERACIÓN'].count()
+total_exportado = int(df['Peso Neto Exportado'].sum())
+total_importado = int(df['Peso Neto Importado'].sum())
+total_total = int(df['Peso Neto Manejado'].sum())
 
 # ESTILO (NO TOCAR)
 st.markdown("""
