@@ -22,7 +22,7 @@ COLOR_ICONO = "#FFD700"   # dorado
 # ------------------------------
 # TEMPLATE PROFESIONAL PARA GRÁFICOS
 # ------------------------------
-TEMPLATE_PRO = dict(
+TEMPLATE_PRO = dict()
     layout=dict(
         font=dict(family="Arial", size=14, color="black"),
         title=dict(font=dict(size=20, color="black")),
