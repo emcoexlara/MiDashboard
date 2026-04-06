@@ -29,7 +29,6 @@ TEMPLATE_PRO = dict(
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
     )
-)
 # ------------------------------
 # FONDO
 # ------------------------------
@@ -290,7 +289,7 @@ with col2:
     st.markdown(f"""
     <div class="kpi-box" style="border-left: 6px solid #28A745;">
         <div class="kpi-title">🌍 Exportado</div>
-        <div class="kpi-value">{total_exportado:,}</div>
+        <div class="kpi-value">{exportado_format}</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -298,7 +297,7 @@ with col3:
     st.markdown(f"""
     <div class="kpi-box" style="border-left: 6px solid #FFC107;">
         <div class="kpi-title">📦 Importado</div>
-        <div class="kpi-value">{total_importado:,}</div>
+        <div class="kpi-value">{importado_format}</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -306,7 +305,7 @@ with col4:
     st.markdown(f"""
     <div class="kpi-box" style="border-left: 6px solid #DC3545;">
         <div class="kpi-title">⚖️ Total</div>
-        <div class="kpi-value">{total_total:,}</div>
+        <div class="kpi-value">{total_format}</div>
     </div>
     """, unsafe_allow_html=True)
 
