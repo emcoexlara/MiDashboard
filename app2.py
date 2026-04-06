@@ -98,7 +98,7 @@ df['id_unico'] = df['DESTINO'].astype(str) + "_" + \
                  df['TIPO DE CARGA'].astype(str)
 
 # Eliminar duplicados basados en ese ID
-df = df.drop_duplicates(subset=['id_unico'])
+
 columnas_requeridas = [
     'DESTINO',
     'Peso Neto Exportado',
