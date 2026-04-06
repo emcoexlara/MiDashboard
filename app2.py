@@ -121,6 +121,18 @@ total_operaciones = len(df_filtrado)
 total_exportado = df_filtrado['Peso Neto Exportado'].sum()
 total_importado = df_filtrado['Peso Neto Importado'].sum()
 total_total = df_filtrado['Peso Neto Manejado'].sum()
+# --- 1. CÁLCULOS (ESTO DEBE IR ANTES DE LOS KPIs) ---
+# Sumamos los datos basándonos en lo que el usuario filtró en la barra lateral
+total_operaciones = len(df_filtrado)
+total_exportado = df_filtrado['Peso Neto Exportado'].sum()
+total_importado = df_filtrado['Peso Neto Importado'].sum()
+total_total = df_filtrado['Peso Neto Manejado'].sum()
+
+# --- 2. FORMATEO (PARA QUE SE VEA COMO EN TU IMAGEN) ---
+# Esto crea las variables que te están dando error
+exportado_format = f"{total_exportado:,.0f}".replace(",", ".")
+importado_format = f"{total_importado:,.0f}".replace(",", ".")
+total_format = f"{total_total:,.0f}".replace(",", ".")
 # ------------------------------
 # VALIDACIÓN DE COLUMNAS
 # ------------------------------
