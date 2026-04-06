@@ -4,6 +4,46 @@ import plotly.express as px
 import base64
 import os
 from pathlib import Path
+
+# ------------------------------
+# Limpieza de columnas
+# ------------------------------
+df.columns = df.columns.str.strip()  # Eliminar espacios
+
+# ------------------------------
+# Conversión automática de tipos numéricos
+# ------------------------------
+for col in df.columns:
+    df[col] = pd.to_numeric(df[col], errors='ignore')  # convierte solo si es posible
+
+# ------------------------------
+# Eliminar duplicados
+# ------------------------------
+df = df.drop_duplicates()
+
+# ------------------------------
+# Filtros
+# ------------------------------
+df_filtrado = df.copy()
+# Ejemplo: filtrar solo operaciones positivas (ajustar según necesidad)
+if "Operaciones" in df_filtrado.columns:
+    df_filtrado = df_filtrado[df_filtrado["Operaciones"] > 0]
+
+# ------------------------------
+# KPI automáticos por columnas numéricas
+# ------------------------------
+numeric_cols = df_filtrado.select_dtypes(include=["number"]).columns
+
+kpis = {}
+for col in numeric_cols:
+    kpis[col] = df_filtrado[col].sum()
+
+kpis["Filas filtradas"] = len(df_filtrado)
+
+# Mostrar KPI
+for key, value in kpis.items():
+    print(f"{key}: {value}")
+
 # Cargar archivo
 df = pd.read_excel("datos.xlsx")
 # ------------------------------
