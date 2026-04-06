@@ -223,7 +223,15 @@ df_filtrado = st.session_state.df_global.copy()
 # ------------------------------
 df['id_unico'] = df['DESTINO'].astype(str) + "_" + df['FECHA'].astype(str) + "_" + df['TIPO DE CARGA'].astype(str)
 df = df.drop_duplicates(subset=['id_unico'])
+# ------------------------------
+# --- CÁLCULOS PARA LOS KPIs ---
+# Contamos las filas para las operaciones
+total_operaciones = len(df_filtrado)
 
+# Sumamos las columnas numéricas (asegúrate que los nombres coincidan con tu Excel)
+total_exportado = df_filtrado['Peso Neto Exportado'].sum()
+total_importado = df_filtrado['Peso Neto Importado'].sum()
+total_total = df_filtrado['Peso Neto Manejado'].sum()
 # =========================
 # KPI FINAL (DISEÑO + DATOS EXCEL)
 # =========================
