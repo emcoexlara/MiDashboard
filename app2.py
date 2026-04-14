@@ -480,3 +480,35 @@ fig_map.add_annotation(
 
 # Mostrar
 st.plotly_chart(fig_map, use_container_width=True)
+# ------------------------------
+# 9. TABLA DE DATOS DETALLADA
+# ------------------------------
+st.markdown("---")
+st.subheader("📊 Detalle de Operaciones (Datos Exactos)")
+
+# Expander para no ocupar espacio visual innecesario de entrada
+with st.expander("Haz clic aquí para ver la tabla completa del Excel"):
+    # Mostramos el dataframe filtrado con las cantidades exactas
+    st.dataframe(
+        df_filtrado, 
+        use_container_width=True,
+        column_config={
+            "FECHA": st.column_config.DateColumn("Fecha"),
+            "Peso Neto Exportado": st.column_config.NumberColumn("Exportado (Kg)", format="%.2f"),
+            "Peso Neto Importado": st.column_config.NumberColumn("Importado (Kg)", format="%.2f"),
+            "Peso Neto Manejado": st.column_config.NumberColumn("Total Manejado (Kg)", format="%.2f")
+        }
+    )
+
+    # Botón para descargar el reporte en Excel
+    import io
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df_filtrado.to_excel(writer, index=False, sheet_name='Reporte')
+    
+    st.download_button(
+        label="📥 Descargar datos filtrados en Excel",
+        data=output.getvalue(),
+        file_name="reporte_operaciones.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
