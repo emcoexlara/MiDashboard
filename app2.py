@@ -5,18 +5,12 @@ import base64
 import os
 
 # ------------------------------
-# CONFIGURACIÓN GENERAL
+# CONFIGURACIÓN
 # ------------------------------
 st.set_page_config(layout="wide")
 
-# ------------------------------
-# COLORES
-# ------------------------------
 COLOR_TITULO = "#1F4E79"
 
-# ------------------------------
-# TEMPLATE GRÁFICOS
-# ------------------------------
 TEMPLATE_PRO = dict(
     layout=dict(
         font=dict(family="Arial", size=14, color="black"),
@@ -37,6 +31,7 @@ def set_background(image_file):
         .stApp {{
             background-image: url("data:image/jpg;base64,{encoded}");
             background-size: cover;
+            background-attachment: fixed;
         }}
         </style>
     """, unsafe_allow_html=True)
@@ -44,7 +39,7 @@ def set_background(image_file):
 set_background("assets/fondo_comercio.jpg")
 
 # ------------------------------
-# LOGO Y TÍTULO
+# HEADER
 # ------------------------------
 col_logo, col_titulo = st.columns([1, 5])
 
@@ -68,11 +63,11 @@ def load_data(path):
 df = load_data("data/datos.xlsx")
 
 # ------------------------------
-# LIMPIEZA DE DATOS
+# LIMPIEZA
 # ------------------------------
 df.columns = df.columns.str.strip()
 
-# 🔥 Convertir correctamente números
+# Convertir números correctamente
 for col in ['Peso Neto Exportado', 'Peso Neto Importado', 'Peso Neto Manejado']:
     df[col] = df[col].astype(str).str.replace(".", "", regex=False).str.replace(",", ".", regex=False)
     df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
@@ -80,33 +75,38 @@ for col in ['Peso Neto Exportado', 'Peso Neto Importado', 'Peso Neto Manejado']:
 # Fecha
 df['FECHA'] = pd.to_datetime(df['FECHA'], errors='coerce')
 
-# ID único (evita duplicados)
+# Eliminar duplicados
 df['id_unico'] = df['DESTINO'].astype(str) + "_" + df['FECHA'].astype(str) + "_" + df['TIPO DE CARGA'].astype(str)
 df = df.drop_duplicates(subset=['id_unico'])
 
 # ------------------------------
-# FILTROS
+# FILTROS (SOLO UNA VEZ)
 # ------------------------------
 st.sidebar.markdown("## 🔎 Filtros")
 
+fecha_min = df['FECHA'].min()
+fecha_max = df['FECHA'].max()
+
 rango_fecha = st.sidebar.date_input(
     "Rango de Fecha",
-    [df['FECHA'].min(), df['FECHA'].max()]
+    [fecha_min, fecha_max]
 )
 
 destinos = st.sidebar.multiselect(
     "Destino",
-    options=sorted(df['DESTINO'].dropna().unique()),
+    sorted(df['DESTINO'].dropna().unique()),
     default=sorted(df['DESTINO'].dropna().unique())
 )
 
 tipos_carga = st.sidebar.multiselect(
     "Tipo de Carga",
-    options=sorted(df['TIPO DE CARGA'].dropna().unique()),
+    sorted(df['TIPO DE CARGA'].dropna().unique()),
     default=sorted(df['TIPO DE CARGA'].dropna().unique())
 )
 
-# Aplicar filtros
+# ------------------------------
+# APLICAR FILTROS (CLAVE 🔥)
+# ------------------------------
 df_filtrado = df.copy()
 
 if len(rango_fecha) == 2:
@@ -122,76 +122,78 @@ if tipos_carga:
     df_filtrado = df_filtrado[df_filtrado['TIPO DE CARGA'].isin(tipos_carga)]
 
 # ------------------------------
-# KPIs (VALORES EXACTOS)
+# KPIs (CORRECTOS)
 # ------------------------------
 total_operaciones = len(df_filtrado)
 total_exportado = df_filtrado['Peso Neto Exportado'].sum()
 total_importado = df_filtrado['Peso Neto Importado'].sum()
 total_total = df_filtrado['Peso Neto Manejado'].sum()
 
-# Formato exacto
 exportado_format = f"{total_exportado:,.2f}"
 importado_format = f"{total_importado:,.2f}"
 total_format = f"{total_total:,.2f}"
 
 # ------------------------------
-# ESTILO KPI
+# KPI VISUAL
 # ------------------------------
 st.markdown("""
 <style>
 .kpi-box {
-    background: rgba(10, 31, 68, 0.75);
+    background: rgba(10,31,68,0.75);
     border-radius: 18px;
     padding: 25px;
     text-align: center;
     color: white;
 }
-.kpi-title { font-size: 20px; }
 .kpi-value { font-size: 34px; font-weight: bold; }
 </style>
 """, unsafe_allow_html=True)
 
-col1, col2, col3, col4 = st.columns(4)
+c1, c2, c3, c4 = st.columns(4)
 
-with col1:
-    st.markdown(f"<div class='kpi-box'><div class='kpi-title'>Operaciones</div><div class='kpi-value'>{total_operaciones}</div></div>", unsafe_allow_html=True)
-
-with col2:
-    st.markdown(f"<div class='kpi-box'><div class='kpi-title'>Exportado</div><div class='kpi-value'>{exportado_format}</div></div>", unsafe_allow_html=True)
-
-with col3:
-    st.markdown(f"<div class='kpi-box'><div class='kpi-title'>Importado</div><div class='kpi-value'>{importado_format}</div></div>", unsafe_allow_html=True)
-
-with col4:
-    st.markdown(f"<div class='kpi-box'><div class='kpi-title'>Total</div><div class='kpi-value'>{total_format}</div></div>", unsafe_allow_html=True)
+c1.markdown(f"<div class='kpi-box'><div>Operaciones</div><div class='kpi-value'>{total_operaciones}</div></div>", unsafe_allow_html=True)
+c2.markdown(f"<div class='kpi-box'><div>Exportado</div><div class='kpi-value'>{exportado_format}</div></div>", unsafe_allow_html=True)
+c3.markdown(f"<div class='kpi-box'><div>Importado</div><div class='kpi-value'>{importado_format}</div></div>", unsafe_allow_html=True)
+c4.markdown(f"<div class='kpi-box'><div>Total</div><div class='kpi-value'>{total_format}</div></div>", unsafe_allow_html=True)
 
 # ------------------------------
 # GRÁFICO EXPORTACIONES
 # ------------------------------
 df_paises = df_filtrado.groupby('DESTINO')['Peso Neto Exportado'].sum().reset_index()
 
-fig1 = px.bar(
-    df_paises,
-    x='DESTINO',
-    y='Peso Neto Exportado',
-    text='Peso Neto Exportado'
-)
+fig1 = px.bar(df_paises, x='DESTINO', y='Peso Neto Exportado', text='Peso Neto Exportado')
 
-fig1.update_traces(
-    texttemplate='%{text:,.2f}',
-    textposition='outside'
-)
+fig1.update_traces(texttemplate='%{text:,.2f}', textposition='outside')
 
-fig1.update_layout(
-    TEMPLATE_PRO["layout"],
-    title="Exportaciones por País",
-    title_x=0.5
-)
+fig1.update_layout(TEMPLATE_PRO["layout"], title="Exportaciones por País", title_x=0.5)
 
 st.plotly_chart(fig1, use_container_width=True)
 
 # ------------------------------
-# MAPA
+# CONTENEDORES VS TONELADAS
+# ------------------------------
+if 'CONTENIDO' in df_filtrado.columns and 'LLENOS RECIBIDOS (EXPORTADOS)' in df_filtrado.columns:
+
+    df_cont = df_filtrado.groupby('CONTENIDO')[[
+        'LLENOS RECIBIDOS (EXPORTADOS)',
+        'Peso Neto Exportado'
+    ]].sum().reset_index()
+
+    fig2 = px.bar(
+        df_cont,
+        x='CONTENIDO',
+        y=['LLENOS RECIBIDOS (EXPORTADOS)', 'Peso Neto Exportado'],
+        barmode='group'
+    )
+
+    fig2.update_traces(texttemplate='%{value:,.2f}')
+
+    fig2.update_layout(TEMPLATE_PRO["layout"], title="Contenedores vs Toneladas", title_x=0.5)
+
+    st.plotly_chart(fig2, use_container_width=True)
+
+# ------------------------------
+# MAPA (COMPLETO)
 # ------------------------------
 df_map = df_filtrado.groupby(['DESTINO', 'TIPO DE CARGA'], as_index=False)['Peso Neto Exportado'].sum()
 
@@ -201,9 +203,26 @@ fig_map = px.scatter_geo(
     locationmode='country names',
     size='Peso Neto Exportado',
     color='TIPO DE CARGA',
-    size_max=40
+    size_max=45,
+    projection='natural earth'
 )
 
-fig_map.update_layout(title="Mapa de Exportaciones", title_x=0.5)
+fig_map.update_layout(
+    title=dict(
+        text="Mapa de Exportaciones por País y Tipo de Carga",
+        x=0.5,
+        font=dict(family="Arial Black", size=20)
+    ),
+    paper_bgcolor="rgba(255,255,255,0.95)",
+    geo=dict(
+        bgcolor="rgba(255,255,255,0.95)",
+        showland=True,
+        landcolor="#F4F6F7",
+        showocean=True,
+        oceancolor="#D6EAF8",
+        showcountries=True,
+        countrycolor="#A6ACAF"
+    )
+)
 
 st.plotly_chart(fig_map, use_container_width=True)
