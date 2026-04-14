@@ -3,23 +3,33 @@ import pandas as pd
 import plotly.express as px
 import base64
 import os
-
+from pathlib import Path
+# Cargar archivo
+df = pd.read_excel("datos.xlsx")
 # ------------------------------
-# CONFIGURACIÓN
+# CONFIGURACIÓN GENERAL
 # ------------------------------
 st.set_page_config(layout="wide")
 
+# ------------------------------
+# COLORES CORPORATIVOS
+# ------------------------------
 COLOR_TITULO = "#1F4E79"
-
+COLOR_CUADRO = "#F2F2F2"
+COLOR_FONDO = "#f5f5f5"
+COLOR_CUADRO = "#003366"  # azul corporativo
+COLOR_ICONO = "#FFD700"   # dorado
+# ------------------------------
+# TEMPLATE PROFESIONAL PARA GRÁFICOS
+# ------------------------------
 TEMPLATE_PRO = dict(
     layout=dict(
         font=dict(family="Arial", size=14, color="black"),
-        title=dict(font=dict(size=20)),
+        title=dict(font=dict(size=20, color="black")),
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
     )
 )
-
 # ------------------------------
 # FONDO
 # ------------------------------
@@ -31,15 +41,26 @@ def set_background(image_file):
         .stApp {{
             background-image: url("data:image/jpg;base64,{encoded}");
             background-size: cover;
+            background-position: center;
             background-attachment: fixed;
         }}
         </style>
     """, unsafe_allow_html=True)
 
 set_background("assets/fondo_comercio.jpg")
-
+st.markdown("""
+<style>
+h1 {
+    font-size: 32px !important;
+    font-weight: 700 !important;
+}
+h4 {
+    margin-bottom: 5px;
+}
+</style>
+""", unsafe_allow_html=True)
 # ------------------------------
-# HEADER
+# LOGO
 # ------------------------------
 col_logo, col_titulo = st.columns([1, 5])
 
@@ -48,42 +69,117 @@ with col_logo:
 
 with col_titulo:
     st.markdown(f"""
-    <h1 style='color:{COLOR_TITULO};'>
-    Control Operacional de Comercio Exterior de Lara
-    </h1>
+    <div style='display:flex; align-items:center; height:100%;'>
+        <h1 style='color:{COLOR_TITULO}; margin:0;'>
+        Control Operacional de Comercio Exterior de Lara
+        </h1>
+    </div>
     """, unsafe_allow_html=True)
-
 # ------------------------------
-# CARGA DE DATOS
+# CARGA AUTOMÁTICA DE DATOS
 # ------------------------------
 @st.cache_data
-def load_data(path):
-    return pd.read_excel(path)
+def load_data(file_path, last_modified):
+    df = pd.read_excel(file_path)
+    return df
 
-df = load_data("data/datos.xlsx")
+file_path = "data/datos.xlsx"
+last_modified = os.path.getmtime(file_path)
 
+# ✅ PRIMERO: cargar datos
+df = load_data(file_path, last_modified)
+
+# ✅ DESPUÉS: trabajar con df
+df.columns = df.columns.str.strip()
+
+# Crear ID único para identificar registros duplicados
+df['id_unico'] = df['DESTINO'].astype(str) + "_" + \
+                 df['FECHA'].astype(str) + "_" + \
+                 df['TIPO DE CARGA'].astype(str)
+
+# Eliminar duplicados basados en ese ID
+
+columnas_requeridas = [
+    'DESTINO',
+    'Peso Neto Exportado',
+    'Peso Neto Importado',
+    'Peso Neto Manejado'
+]
+
+faltantes = [col for col in columnas_requeridas if col not in df.columns]
+
+if faltantes:
+    st.error(f"❌ Faltan columnas en el Excel: {faltantes}")
+    st.stop()
+
+for col in columnas_requeridas[1:]:
+    df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+
+df_filtrado = df.copy()
+# --- CÁLCULO DE TOTALES ---
+total_operaciones = len(df_filtrado)
+total_exportado = df_filtrado['Peso Neto Exportado'].sum()
+total_importado = df_filtrado['Peso Neto Importado'].sum()
+total_total = df_filtrado['Peso Neto Manejado'].sum()
+# --- 1. CÁLCULOS (ESTO DEBE IR ANTES DE LOS KPIs) ---
+# Sumamos los datos basándonos en lo que el usuario filtró en la barra lateral
+total_operaciones = len(df_filtrado)
+total_exportado = df_filtrado['Peso Neto Exportado'].sum()
+total_importado = df_filtrado['Peso Neto Importado'].sum()
+total_total = df_filtrado['Peso Neto Manejado'].sum()
+
+# --- 2. FORMATEO (PARA QUE SE VEA COMO EN TU IMAGEN) ---
+# Esto crea las variables que te están dando error
+exportado_format = f"{total_exportado:,.0f}".replace(",", ".")
+importado_format = f"{total_importado:,.0f}".replace(",", ".")
+total_format = f"{total_total:,.0f}".replace(",", ".")
 # ------------------------------
-# LIMPIEZA
+# VALIDACIÓN DE COLUMNAS
+# ------------------------------
+
+# Limpiar nombres de columnas (elimina espacios ocultos)
+df.columns = df.columns.str.strip()
+
+# Columnas obligatorias
+columnas_requeridas = [
+    'DESTINO',
+    'Peso Neto Exportado',
+    'Peso Neto Importado',
+    'Peso Neto Manejado'
+]
+# Verificar si faltan columnas
+faltantes = [col for col in columnas_requeridas if col not in df.columns]
+
+if faltantes:
+    st.error(f"❌ Faltan columnas en el Excel: {faltantes}")
+    st.stop()
+
+# Convertir columnas a numérico (evita errores y ceros)
+for col in columnas_requeridas[1:]:
+    df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+
+# Crear df_filtrado correctamente
+df_filtrado = df.copy()
+# ------------------------------
+# LIMPIEZA DE DATOS
 # ------------------------------
 df.columns = df.columns.str.strip()
 
-# Convertir números correctamente
-for col in ['Peso Neto Exportado', 'Peso Neto Importado', 'Peso Neto Manejado']:
-    df[col] = df[col].astype(str).str.replace(".", "", regex=False).str.replace(",", ".", regex=False)
-    df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
+df['Peso Neto Exportado'] = pd.to_numeric(df['Peso Neto Exportado'], errors='coerce').fillna(0)
+df['Peso Neto Importado'] = pd.to_numeric(df['Peso Neto Importado'], errors='coerce').fillna(0)
+df['Peso Neto Manejado'] = pd.to_numeric(df['Peso Neto Manejado'], errors='coerce').fillna(0)
 
-# Fecha
-df['FECHA'] = pd.to_datetime(df['FECHA'], errors='coerce')
-
-# Eliminar duplicados
-df['id_unico'] = df['DESTINO'].astype(str) + "_" + df['FECHA'].astype(str) + "_" + df['TIPO DE CARGA'].astype(str)
-df = df.drop_duplicates(subset=['id_unico'])
-
+df_filtrado = df.copy()
 # ------------------------------
-# FILTROS (SOLO UNA VEZ)
+# FILTROS DINÁMICOS
 # ------------------------------
+
 st.sidebar.markdown("## 🔎 Filtros")
 
+# Asegurar formato de fecha
+df['FECHA'] = pd.to_datetime(df['FECHA'], errors='coerce')
+
+# FILTRO POR FECHA
 fecha_min = df['FECHA'].min()
 fecha_max = df['FECHA'].max()
 
@@ -92,128 +188,265 @@ rango_fecha = st.sidebar.date_input(
     [fecha_min, fecha_max]
 )
 
+# FILTRO DESTINO
 destinos = st.sidebar.multiselect(
     "Destino",
-    sorted(df['DESTINO'].dropna().unique()),
+    options=sorted(df['DESTINO'].dropna().unique()),
     default=sorted(df['DESTINO'].dropna().unique())
 )
 
+# FILTRO TIPO DE CARGA
 tipos_carga = st.sidebar.multiselect(
     "Tipo de Carga",
-    sorted(df['TIPO DE CARGA'].dropna().unique()),
+    options=sorted(df['TIPO DE CARGA'].dropna().unique()),
     default=sorted(df['TIPO DE CARGA'].dropna().unique())
 )
 
 # ------------------------------
-# APLICAR FILTROS (CLAVE 🔥)
+# APLICAR FILTROS
 # ------------------------------
-df_filtrado = df.copy()
 
+df_filtrado = df.copy()
+# Fecha
 if len(rango_fecha) == 2:
     df_filtrado = df_filtrado[
         (df_filtrado['FECHA'] >= pd.to_datetime(rango_fecha[0])) &
         (df_filtrado['FECHA'] <= pd.to_datetime(rango_fecha[1]))
     ]
 
+# Destino
 if destinos:
     df_filtrado = df_filtrado[df_filtrado['DESTINO'].isin(destinos)]
 
+# Tipo de carga
 if tipos_carga:
     df_filtrado = df_filtrado[df_filtrado['TIPO DE CARGA'].isin(tipos_carga)]
+# ------------------------------
+# CONTROL DE DUPLICADOS EN EL DATAFRAME
+# ------------------------------
+# Crear ID único para cada registro y eliminar duplicados
+df['id_unico'] = df['DESTINO'].astype(str) + "_" + df['FECHA'].astype(str) + "_" + df['TIPO DE CARGA'].astype(str)
+df = df.drop_duplicates(subset=['id_unico'])
 
+# Guardar el df limpio en session_state para que no se duplique al recargar
+if "df_global" not in st.session_state:
+    st.session_state.df_global = df.copy()
+
+# Usar df limpio para filtros y cálculos
+df_filtrado = st.session_state.df_global.copy()
 # ------------------------------
-# KPIs (CORRECTOS)
+# LIMPIEZA Y UNICIDAD DE DATOS
 # ------------------------------
+df['id_unico'] = df['DESTINO'].astype(str) + "_" + df['FECHA'].astype(str) + "_" + df['TIPO DE CARGA'].astype(str)
+df = df.drop_duplicates(subset=['id_unico'])
+# ------------------------------
+# --- CÁLCULOS PARA LOS KPIs ---
+# Contamos las filas para las operaciones
 total_operaciones = len(df_filtrado)
+
+# Sumamos las columnas numéricas (asegúrate que los nombres coincidan con tu Excel)
 total_exportado = df_filtrado['Peso Neto Exportado'].sum()
 total_importado = df_filtrado['Peso Neto Importado'].sum()
 total_total = df_filtrado['Peso Neto Manejado'].sum()
+# =========================
+# KPI FINAL (DISEÑO + DATOS EXCEL)
+# =========================
 
-exportado_format = f"{total_exportado:,.2f}"
-importado_format = f"{total_importado:,.2f}"
-total_format = f"{total_total:,.2f}"
+# Asegurar columnas limpias
+df.columns = df.columns.str.strip()
 
-# ------------------------------
-# KPI VISUAL
-# ------------------------------
+# Datos EXACTOS del Excel
+total_operaciones = df['N° DE OPERACIÓN'].count()
+total_exportado = int(df['Peso Neto Exportado'].sum())
+total_importado = int(df['Peso Neto Importado'].sum())
+total_total = int(df['Peso Neto Manejado'].sum())
+
+# ESTILO (NO TOCAR)
 st.markdown("""
 <style>
 .kpi-box {
-    background: rgba(10,31,68,0.75);
+    background: rgba(10, 31, 68, 0.75);
+    backdrop-filter: blur(10px);
     border-radius: 18px;
     padding: 25px;
     text-align: center;
     color: white;
+    box-shadow: 0px 4px 20px rgba(0,0,0,0.25);
+    border: 2px solid rgba(255,255,255,0.2);
 }
-.kpi-value { font-size: 34px; font-weight: bold; }
+.kpi-title {
+    font-size: 20px;
+    font-weight: 600;
+}
+.kpi-value {
+    font-size: 38px;
+    font-weight: bold;
+    margin-top: 10px;
+}
 </style>
 """, unsafe_allow_html=True)
 
-c1, c2, c3, c4 = st.columns(4)
+# COLUMNAS (UNA SOLA VEZ)
+col1, col2, col3, col4 = st.columns(4)
 
-c1.markdown(f"<div class='kpi-box'><div>Operaciones</div><div class='kpi-value'>{total_operaciones}</div></div>", unsafe_allow_html=True)
-c2.markdown(f"<div class='kpi-box'><div>Exportado</div><div class='kpi-value'>{exportado_format}</div></div>", unsafe_allow_html=True)
-c3.markdown(f"<div class='kpi-box'><div>Importado</div><div class='kpi-value'>{importado_format}</div></div>", unsafe_allow_html=True)
-c4.markdown(f"<div class='kpi-box'><div>Total</div><div class='kpi-value'>{total_format}</div></div>", unsafe_allow_html=True)
+with col1:
+    st.markdown(f"""
+    <div class="kpi-box" style="border-left: 6px solid #00BFFF;">
+        <div class="kpi-title">🚢 Operaciones</div>
+        <div class="kpi-value">{total_operaciones}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col2:
+    st.markdown(f"""
+    <div class="kpi-box" style="border-left: 6px solid #28A745;">
+        <div class="kpi-title">🌍 Exportado</div>
+        <div class="kpi-value">{exportado_format}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+    st.markdown(f"""
+    <div class="kpi-box" style="border-left: 6px solid #FFC107;">
+        <div class="kpi-title">📦 Importado</div>
+        <div class="kpi-value">{importado_format}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col4:
+    st.markdown(f"""
+    <div class="kpi-box" style="border-left: 6px solid #DC3545;">
+        <div class="kpi-title">⚖️ Total</div>
+        <div class="kpi-value">{total_format}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ------------------------------
-# GRÁFICO EXPORTACIONES
+# GRÁFICOS Y MAPAS (ÚNICO BLOQUE)
+# ------------------------------
+fig_placeholder = st.container()
+
+with fig_placeholder:
+    # Exportaciones por país
+    df_paises = df.groupby('DESTINO')['Peso Neto Exportado'].sum().reset_index()
+
+# ------------------------------
+# GRÁFICO POR PAÍS
 # ------------------------------
 df_paises = df_filtrado.groupby('DESTINO')['Peso Neto Exportado'].sum().reset_index()
+# ------------------------------
+# ESTILO FONDO BLANCO DIFUMINADO
+# ------------------------------
+def aplicar_fondo_blanco(fig):
+    fig.update_layout(
+        paper_bgcolor="rgba(255,255,255,0.90)",  # fondo general
+        plot_bgcolor="rgba(255,255,255,0.80)",   # área del gráfico
+        font=dict(family="Arial Black", size=14, color="black")
+    )
+    return fig
+fig1 = px.bar(
+    df_paises,
+    x='DESTINO',
+    y='Peso Neto Exportado',
+    text='Peso Neto Exportado'
+)
 
-fig1 = px.bar(df_paises, x='DESTINO', y='Peso Neto Exportado', text='Peso Neto Exportado')
+fig1.update_traces(
+    texttemplate='%{text:,.0f}',
+    textposition='outside',
+    marker_line_width=1.5
+)
 
-fig1.update_traces(texttemplate='%{text:,.2f}', textposition='outside')
+fig1.update_layout(
+    TEMPLATE_PRO["layout"],
+    title="Exportaciones por País",
+    title_x=0.5,
+    font=dict(size=14, family="Arial Black"),
+)
 
-fig1.update_layout(TEMPLATE_PRO["layout"], title="Exportaciones por País", title_x=0.5)
+# Marca de agua
+fig1.add_annotation(
+    text="COMERCIO EXTERIOR",
+    xref="paper", yref="paper",
+    x=0.5, y=0.5,
+    showarrow=False,
+    font=dict(size=40, color="rgba(0,0,0,0.05)"),
+    align="center"
+)
 
+fig1 = aplicar_fondo_blanco(fig1)
 st.plotly_chart(fig1, use_container_width=True)
-
 # ------------------------------
 # CONTENEDORES VS TONELADAS
 # ------------------------------
 if 'CONTENIDO' in df_filtrado.columns and 'LLENOS RECIBIDOS (EXPORTADOS)' in df_filtrado.columns:
 
-    df_cont = df_filtrado.groupby('CONTENIDO')[[
-        'LLENOS RECIBIDOS (EXPORTADOS)',
-        'Peso Neto Exportado'
-    ]].sum().reset_index()
+    df_cont = df_filtrado.groupby('CONTENIDO')[['LLENOS RECIBIDOS (EXPORTADOS)', 'Peso Neto Exportado']].sum().reset_index()
 
-    fig2 = px.bar(
-        df_cont,
-        x='CONTENIDO',
-        y=['LLENOS RECIBIDOS (EXPORTADOS)', 'Peso Neto Exportado'],
-        barmode='group'
-    )
+fig2 = px.bar(
+    df_cont,
+    x='CONTENIDO',
+    y=['LLENOS RECIBIDOS (EXPORTADOS)', 'Peso Neto Exportado'],
+    barmode='group'
+)
 
-    fig2.update_traces(texttemplate='%{value:,.2f}')
+fig2.update_layout(
+    TEMPLATE_PRO["layout"],
+    title="Contenedores vs Toneladas",
+    title_x=0.5,
+    font=dict(size=14, family="Arial Black"),
+)
 
-    fig2.update_layout(TEMPLATE_PRO["layout"], title="Contenedores vs Toneladas", title_x=0.5)
+# Marca de agua
+fig2.add_annotation(
+    text="LOGÍSTICA INTERNACIONAL",
+    xref="paper", yref="paper",
+    x=0.5, y=0.5,
+    showarrow=False,
+    font=dict(size=40, color="rgba(0,0,0,0.05)")
+)
 
-    st.plotly_chart(fig2, use_container_width=True)
-
+fig2 = aplicar_fondo_blanco(fig2)
+st.plotly_chart(fig2, use_container_width=True)
 # ------------------------------
-# MAPA (COMPLETO)
+# MAPA AVANZADO DE EXPORTACIONES
 # ------------------------------
-df_map = df_filtrado.groupby(['DESTINO', 'TIPO DE CARGA'], as_index=False)['Peso Neto Exportado'].sum()
 
+import plotly.express as px
+
+# Agrupar datos por destino y tipo de carga
+df_map = df_filtrado.groupby(
+    ['DESTINO', 'TIPO DE CARGA'], 
+    as_index=False
+)['Peso Neto Exportado'].sum()
+
+# Crear mapa
 fig_map = px.scatter_geo(
     df_map,
     locations='DESTINO',
     locationmode='country names',
     size='Peso Neto Exportado',
-    color='TIPO DE CARGA',
+    color='TIPO DE CARGA',  # 🔥 diferenciación clave
+    hover_name='DESTINO',
     size_max=45,
     projection='natural earth'
 )
 
+# Diseño profesional
 fig_map.update_layout(
+
     title=dict(
         text="Mapa de Exportaciones por País y Tipo de Carga",
         x=0.5,
-        font=dict(family="Arial Black", size=20)
+        font=dict(
+            family="Arial Black",
+            size=20,
+            color="black"
+        )
     ),
+
     paper_bgcolor="rgba(255,255,255,0.95)",
+
     geo=dict(
         bgcolor="rgba(255,255,255,0.95)",
         showland=True,
@@ -222,7 +455,28 @@ fig_map.update_layout(
         oceancolor="#D6EAF8",
         showcountries=True,
         countrycolor="#A6ACAF"
+    ),
+
+    legend=dict(
+        title="Tipo de Carga",
+        orientation="h",
+        y=-0.1
     )
 )
 
+# Marca de agua
+fig_map.add_annotation(
+    text="EXPORTACIONES",
+    x=0.5,
+    y=0.5,
+    xref="paper",
+    yref="paper",
+    showarrow=False,
+    font=dict(
+        size=40,
+        color="rgba(0,0,0,0.05)"
+    )
+)
+
+# Mostrar
 st.plotly_chart(fig_map, use_container_width=True)
