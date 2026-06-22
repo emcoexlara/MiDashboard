@@ -5,7 +5,7 @@ import base64
 import os
 from pathlib import Path
 # Cargar archivo
-
+df = pd.read_excel("datos.xlsx")
 # ------------------------------
 # CONFIGURACIÓN GENERAL
 # ------------------------------
@@ -115,9 +115,12 @@ if faltantes:
 for col in columnas_requeridas[1:]:
     df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
 
-
+df_filtrado = df.copy()
 # --- CÁLCULO DE TOTALES ---
-
+total_operaciones = len(df_filtrado)
+total_exportado = df_filtrado['Peso Neto Exportado'].sum()
+total_importado = df_filtrado['Peso Neto Importado'].sum()
+total_total = df_filtrado['Peso Neto Manejado'].sum()
 # --- 1. CÁLCULOS (ESTO DEBE IR ANTES DE LOS KPIs) ---
 # Sumamos los datos basándonos en lo que el usuario filtró en la barra lateral
 total_operaciones = len(df_filtrado)
@@ -166,7 +169,7 @@ df['Peso Neto Exportado'] = pd.to_numeric(df['Peso Neto Exportado'], errors='coe
 df['Peso Neto Importado'] = pd.to_numeric(df['Peso Neto Importado'], errors='coerce').fillna(0)
 df['Peso Neto Manejado'] = pd.to_numeric(df['Peso Neto Manejado'], errors='coerce').fillna(0)
 
-
+df_filtrado = df.copy()
 # ------------------------------
 # FILTROS DINÁMICOS
 # ------------------------------
@@ -226,10 +229,11 @@ df['id_unico'] = df['DESTINO'].astype(str) + "_" + df['FECHA'].astype(str) + "_"
 df = df.drop_duplicates(subset=['id_unico'])
 
 # Guardar el df limpio en session_state para que no se duplique al recargar
-
+if "df_global" not in st.session_state:
+    st.session_state.df_global = df.copy()
 
 # Usar df limpio para filtros y cálculos
-
+df_filtrado = st.session_state.df_global.copy()
 # ------------------------------
 # LIMPIEZA Y UNICIDAD DE DATOS
 # ------------------------------
@@ -251,6 +255,11 @@ total_total = df_filtrado['Peso Neto Manejado'].sum()
 # Asegurar columnas limpias
 df.columns = df.columns.str.strip()
 
+# Datos EXACTOS del Excel
+total_operaciones = df['N° DE OPERACIÓN'].count()
+total_exportado = int(df['Peso Neto Exportado'].sum())
+total_importado = int(df['Peso Neto Importado'].sum())
+total_total = int(df['Peso Neto Manejado'].sum())
 
 # ESTILO (NO TOCAR)
 st.markdown("""
